@@ -112,14 +112,6 @@ The following keywords have structural meaning for target definitions:
 || `conditions` || A list of condition specifications to be applied to the settings for this target. See the "Keyword: conditions" section below. ||
 || `dependent_settings` || A dictionary of settings to be applied to other targets that depend on this target. ||
 
-Valid types are:
-
-  * TODO(sgk):  validate this stake-in-the-ground list with everyone
-  * `static_library`
-  * `shared_library`
-  * `test_program`
-  * `executable`
-
 The other keywords in a dictionary in the `targets` list are settings to be applied when building that target.  See the "Settings keywords" section below.
 
 == conditions ==
@@ -150,6 +142,13 @@ The following keywords are meaningful within a settings section:
 || `vs_props` || A list of Visual Studio property sheets (`.vsprops files`) to be used to build the targets. ||
 || `xcode_configs` || A list of XCode configurations (`.xcconfig files`) to be used to build the targets. ||
 || `xcode_framework_dirs` || A list of framework directories be used to build the targets. ||
+
+Valid `type` values are (TODO(sgk):  validate this stake-in-the-ground list with everyone):
+
+  * `static_library`
+  * `shared_library`
+  * `test_program`
+  * `executable`
 
 TODO(sgk+mmentovai):  document settings merging with new `+ - ! /` characters
 
