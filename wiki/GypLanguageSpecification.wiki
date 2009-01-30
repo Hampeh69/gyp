@@ -102,7 +102,7 @@ This is the single dictionary in the `.gyp` file that defines the targets and ho
 The following keywords are meaningful within the top-level dictionary definition:
 
 || `settings` || A dictionary of default settings to be inherited by all targets in the top-level dictionary.  See the "Settings keywords" section below. ||
-|| `targets` || A list of target specifications.  See the "targets" below. ||
+|| `targets` || A list of target specifications.  See the "targets" section below. ||
 
 == targets ==
 
@@ -110,7 +110,7 @@ A list of dictionaries defining targets to be built by the files generated from 
 
 The following keywords have structural meaning for target definitions:
 
-|| `conditions` || A list of condition specifications to be applied to the settings for this target. See the "Keyword: conditions" section below. ||
+|| `conditions` || A list of condition specifications to be applied to the settings for this target. See the "conditions" section below. ||
 || `dependent_settings` || A dictionary of settings to be applied to other targets that depend on this target. ||
 
 The other keywords in a dictionary in the `targets` list are settings to be applied when building that target.  See the "Settings keywords" section below.
@@ -159,7 +159,7 @@ We derive the following things in a `project.pbxproj` plist file within the `.xc
 
   * `Group hierarchy`: This is generated in a fixed format with contents derived from the input files. There is no provision for the user to specify additional groups or create a custom hierarchy. (TODO(all): RIGHT? Mark notes: Almost certainly, my generator allows for the flexibility but I wasn't planning on doing anything special in the glue.)
     * `Configuration group`:
-    * `Source group`: The union of the `sources` lists of all `targets` after applying appropriate `conditions`.  The resulting list is sorted and put into a group hierarchy that matches the layout of the directory tree on disk, with a root of // (the top of the hierarchy).
+    * `Source group`: The union of the `sources` lists of all `targets` after applying appropriate `conditions`.  The resulting list is sorted and put into a group hierarchy that matches the layout of the directory tree on disk, with a root of // (the top of the hierarchy).  TODO(mark):  what do we do about files in `SDKROOT` or which are otherwise outside of the source hierarchy? Mark sez: I have plans to handle this gracefully in the generator, but since the bits to lay the Source group out as it looks on disk don't exist yet, neither do the parts to handle SDKROOT and other variable-relative paths, or even absolute paths.
     * `Frameworks group`: Taken directly from `libraries` value for the target, after applying appropriate conditions.
     * `Projects group`: References to other `.xcodeproj` bundles that are needed by the `.xcodeproj` in which the group is contained.
     * `Products group`: Output from the various targets.
