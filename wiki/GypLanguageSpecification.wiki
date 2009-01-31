@@ -2,8 +2,8 @@
 GYP (Generate Your Projects)
 <BR>Status: Draft (as of 2009-01-30)
 
-Mark Mentovai <mmentovai@google.com> _et al._
-<BR>Modified:  2009-01-30
+Mark Mentovai <mark@chromium.org> _et al._
+<BR>Modified: 2009-01-30
 
 Contents
 
@@ -11,13 +11,13 @@ Contents
 
 = Objective =
 
-Create a tool for the Chromium project that generates native Visual Studio, XCode and SCons and/or Forge build files from a platform-independent input format.  Make the input format as reasonably general as possible without spending extra time trying to "get everything right," except where not doing so would likely lead Chromium to an eventual dead end.  When in doubt, do what Chromium needs and don't worry about generalizing the solution.
+Create a tool for the Chromium project that generates native Visual Studio, Xcode and SCons and/or Forge build files from a platform-independent input format.  Make the input format as reasonably general as possible without spending extra time trying to "get everything right," except where not doing so would likely lead Chromium to an eventual dead end.  When in doubt, do what Chromium needs and don't worry about generalizing the solution.
 
 = Background =
 
 Numerous other projects, both inside and outside Google, have tried to create a simple, universal cross-platform build representation that still allows sufficient per-platform flexibility to accommodate irreconcilable differences.  The fact that no obvious working candidate exists that meets Chromium's requirements indicates this is probably a tougher problem than it appears at first glance.  We aim to succeed by creating a tool that is highly specific to Chromium's specific use case, not to the general case of design a completely platform-independent tool for expressing any possible build.
 
-The Mac has the most sophisticated model for application development through an IDE.  Consequently, we will use the XCode model as the starting point (the input file format must handle Chromium's use of XCode seamlessly) and adapt the design as necessary for the other platforms.
+The Mac has the most sophisticated model for application development through an IDE.  Consequently, we will use the Xcode model as the starting point (the input file format must handle Chromium's use of Xcode seamlessly) and adapt the design as necessary for the other platforms.
 
 = Overview =
 
@@ -26,7 +26,7 @@ The overall design has the following characteristics:
   * Input configurations are specified in files with the suffix `.gyp`.
   * Each `.gyp` file specifies how to build the targets for the "component" defined by that file.
   * Each `.gyp` file generates one or more output files appropriate to the platform:
-    * On Mac, a `.gyp` file generates one XCode .pbxproj file with information about how its targets are built.
+    * On Mac, a `.gyp` file generates one Xcode .xcodeproj bundle with information about how its targets are built.
     * On Windows, a `.gyp` file generates one Visual Studio .sln file, and one Visual Studio .vcproj file per target.
     * On Linux, a `.gyp` file generates one SCons file and/or one Makefile per target
   * The `.gyp` file syntax is a Python data structure.
@@ -48,61 +48,61 @@ Some up-front design principles/thoughts/TODOs:
   * Semantic meanings of specific keyword values get deferred until all are read and the configuration is being evaluated to spit out the appropriate file(s)
   * Source file lists:
     * Are unordered, flat lists.  Any imposed ordering within the `.gyp` file (e.g. alphabetically) is purely by convention and for developer convenience.
-    * Source file lists contain no mechanism for by-hand folder configuration (`Filter` tags in Visual Studio, `Groups` in XCode)
+    * Source file lists contain no mechanism for by-hand folder configuration (`Filter` tags in Visual Studio, `Groups` in Xcode)
     * A folder hierarchy is created automatically that mirrors the file system
 
 == Example ==
 
 {{{
 {
-  "settings": {
-    "defines": [
-      "U_STATIC_IMPLEMENTATION",
-      ["LOGFILE", "foo.log",],
+  'settings': {
+    'defines': [
+      'U_STATIC_IMPLEMENTATION',
+      ["LOGFILE", 'foo.log',],
     ],
-    "include_dirs": [
-      "..",
+    'include_dirs': [
+      '..',
     ],
   },
-  "targets": [
+  'targets': [
     {
-      "name": "foo",
-      "type": "static_library",
-      "sources": [
-        "foo/src/foo.cc",
-        "foo/src/foo_main.cc",
+      'name': 'foo',
+      'type': 'static_library',
+      'sources': [
+        'foo/src/foo.cc',
+        'foo/src/foo_main.cc',
       ],
-      "include_dirs": [
-        `"foo",
-    `    "foo/include",
+      'include_dirs': [
+         'foo',
+         'foo/include',
       ],
-      "conditions": [
-         [ "OS==mac", { "sources": [ "platform_test_mac.mm" ] } ]
+      'conditions': [
+         [ 'OS==mac', { 'sources': [ 'platform_test_mac.mm' ] } ]
       ],
-      "dependent_settings": {
-        "defines": [
-          "UNIT_TEST",
+      'dependent_settings': {
+        'defines': [
+          'UNIT_TEST',
         ],
-        "include_dirs": [
-          "foo",
-          "foo/include",
+        'include_dirs': [
+          'foo',
+          'foo/include',
         ],
-      }
-    }
+      },
+    },
   ],
 }
 }}}
 
 == Structural Elements ==
 
-== Top-level Dictionary (`build_file_data`) ==
+== Top-level Dictionary ==
 
 This is the single dictionary in the `.gyp` file that defines the targets and how they're to be built.
 
 The following keywords are meaningful within the top-level dictionary definition:
 
 || `settings` || A dictionary of default settings to be inherited by all targets in the top-level dictionary.  See the "Settings keywords" section below. ||
-|| `targets` || A list of target specifications.  See the "targets" section below. ||
+|| `targets` || A list of target specifications.  See the "targets" below. ||
 
 == targets ==
 
@@ -110,7 +110,7 @@ A list of dictionaries defining targets to be built by the files generated from 
 
 The following keywords have structural meaning for target definitions:
 
-|| `conditions` || A list of condition specifications to be applied to the settings for this target. See the "conditions" section below. ||
+|| `conditions` || A list of condition specifications to be applied to the settings for this target. See the "Keyword: conditions" section below. ||
 || `dependent_settings` || A dictionary of settings to be applied to other targets that depend on this target. ||
 
 The other keywords in a dictionary in the `targets` list are settings to be applied when building that target.  See the "Settings keywords" section below.
@@ -121,7 +121,7 @@ A list of keyword+value pairs. The keyword is a string containing an expression 
 
 The `eval()` of the expression string takes place in the context of global and/or local dictionaries that we construct from the `.gyp` input data, and overrides the `__builtin__` dictionary, to prevent the execution of arbitrary Python code.
 
-TODO(sgk+mmentovai):  document condition evaluation order
+TODO(sgk+mark):  document condition evaluation order
 
 == Settings keywords ==
 
@@ -135,44 +135,42 @@ These are keywords whose values make up the bulk of the actual data written into
 The following keywords are meaningful within a settings section:
 
 || `defines` || A list of preprocesor definitions to be passed on the command line to the C/C++ compiler (via `-D` or `/D` options). ||
-|| `dependencies` || A list of targets on which this target depends. Targets in other `.gyp` files are specified as `../path/to/other_target.gyp:target_we_want`. ||
+|| `dependencies` || A list of targets on which this target depends. Targets in other `.gyp` files are specified as `../path/to/other.gyp:target_we_want`. ||
 || `include_dirs` || A list of include directories to be passed on the command line to the C/C++ compiler (via `-I` or `/I` options). ||
 || `libraries` || A list of list of libraries (and/or frameworks) on which this target depends. ||
 || `name` || The name of a target being defined. ||
 || `sources` || A list of source files that are used to build this target or which should otherwise show up in the IDE for this target.  In practice, we expect this list to be a union of all files necessary to build the target on all platforms, as well as other related files that aren't actually used for building, like README files. ||
 || `type` || The type of target being defined. The list of acceptable `type` values is below.||
 || `vs_props` || A list of Visual Studio property sheets (`.vsprops` files) to be used to build the targets. ||
-|| `xcode_configs` || A list of XCode configurations (`.xcconfig` files) to be used to build the targets. ||
+|| `xcode_configs` || A list of Xcode configurations (`.xcconfig` files) to be used to build the targets. ||
 || `xcode_framework_dirs` || A list of framework directories be used to build the targets. ||
 
 Valid `type` values are (TODO(sgk):  validate this stake-in-the-ground list with everyone):
 
   * `static_library`
   * `shared_library`
-  * `test_program`
   * `executable`
 
-TODO(sgk+mmentovai):  document settings merging with new `+ - ! /` characters
+TODO(sgk+mark):  document settings merging with new `+ - ! /` characters
 
 
-== Generated XCode .pbxproj Files ==
+== Generated Xcode .pbxproj Files ==
 
-We derive the following things in a `.pbxproj` plist file from the above input file formats as follows:
+We derive the following things in a `project.pbxproj` plist file within the `.xcodeproj` bundle from the above input file formats as follows:
 
-  * `Group hierarchy`: This is generated in a fixed format with contents derived from the input files. There is no provision for the user to specify additional groups or create a custom hierarchy. (TODO(all): RIGHT?)
+  * `Group hierarchy`: This is generated in a fixed format with contents derived from the input files. There is no provision for the user to specify additional groups or create a custom hierarchy. (TODO(all): RIGHT? Mark notes: Almost certainly, my generator allows for the flexibility but I wasn't planning on doing anything special in the glue.)
     * `Configuration group`:
-    * `Source group`: The union of the `sources` lists of all `targets` after applying appropriate `conditions`.  The resulting list is sorted and put into a group hierarchy that matches the layout of the directory tree on disk, with a root of // (the top of the hierarchy).  TODO(mmentovai?):  what do we do about files in `SDKROOT` or which are otherwise outside of the source hierarchy?
+    * `Source group`: The union of the `sources` lists of all `targets` after applying appropriate `conditions`.  The resulting list is sorted and put into a group hierarchy that matches the layout of the directory tree on disk, with a root of // (the top of the hierarchy).
     * `Frameworks group`: Taken directly from `libraries` value for the target, after applying appropriate conditions.
-    * `Projects group`:
-    * `Products group`:
+    * `Projects group`: References to other `.xcodeproj` bundles that are needed by the `.xcodeproj` in which the group is contained.
+    * `Products group`: Output from the various targets.
   * `Project References`:
   * `Project Configurations`:
   * `Targets`:
-    * `Phases`:
-    * `Target Configurations`:
-    * `File Configurations`:
-    * `Local Dependencies`:
-    * `Remote Dependencies`:
+    * `Phases`: Copy sources, link with libraries/frameworks, ...
+    * `Target Configurations`: Specified by input.  TODO(mark): Implement.
+    * `File Configurations`: Per-build file settings are not supported.
+    * `Dependencies`: (local and remote)
 
 == Generated Visual Studio .vcproj Files ==
 
@@ -206,7 +204,7 @@ We derive the following sections in a `.sln` file from the above input file form
 
 = Code Location =
 
-Here!  http://code.google.com/p/gyp
+Here!  http://gyp.googlecode.com/
 
 = Group Members =
 
@@ -214,14 +212,14 @@ Here!  http://code.google.com/p/gyp
 || Elliot Glaysher || Approval of Linux build functionality. ||
 || Alex Harper || ||
 || Steven Knight || Language specification. ||
-|| Mark Mentovai || Input language; code for generating XCode files from `.gyp` files; approval of Mac (XCode) build functionality. ||
+|| Mark Mentovai || Input language design and implementation.<br/>Code for generating Xcode files from `.gyp` files.<br/>Approval of Mac (Xcode) build functionality. ||
 || Bradley Nelson || Code for generating Visual Studio files from `.gyp` files. ||
 || Randall Spangler || ||
 || Nicolas Sylvain || Approval of Windows build functionality. ||
 
 = Caveats =
 
-TODO(sgk):  Notes/Question from very first prototype draft of the langauge.  Make sure these issues are addressed somewhere before deleting.
+TODO(sgk):  Notes/Question from very first prototype draft of the language.  Make sure these issues are addressed somewhere before deleting.
 
   * Libraries are easy, application abstraction is harder
     * Applications involves resource compilation
