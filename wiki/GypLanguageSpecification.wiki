@@ -115,7 +115,7 @@ A list of dictionaries defining targets to be built by the files generated from 
 Targets may contain `includes`, `conditions`, and `variables` sections as permitted in the root dictionary. The following additional keywords have structural meaning for target definitions:
 
 || `all_dependent_settings` || A dictionary of settings to be applied to all dependents of the target, transitively.  This includes direct dependents and the entire set of their dependents, and so on.  This section may contain anything found within a `target` dictionary, except `configurations`, `target_name`, and `type` sections.  Compare `direct_dependent_settings` and `link_settings`. ||
-|| `configurations` || A list of dictionaries defining build configurations for the target.  See the "Configurations" section below.
+|| `configurations` || A list of dictionaries defining build configurations for the target.  See the "Configurations" section below. ||
 || `defines` || A list of preprocesor definitions to be passed on the command line to the C/C++ compiler (via `-D` or `/D` options). ||
 || `dependencies` || A list of targets on which this target depends. Targets in other `.gyp` files are specified as `../path/to/other.gyp:target_we_want`. ||
 || `direct_dependent_settings` || A dictionary of settings to be applied to other targets that depend on this target.  These settings will only be applied to direct dependents.  This section may contain anything found within a `target` dictionary, except `configurations`, `target_name`, and `type` sections.  Compare with `all_dependent_settings` and `link_settings`. ||
@@ -209,7 +209,7 @@ Here!  http://gyp.googlecode.com/
 || Darin Fisher || Overall approval of final design ||
 || Elliot Glaysher || Approval of Linux build functionality. ||
 || Alex Harper || ||
-|| Steven Knight || Language specification. ||
+|| Steven Knight || Language specification.<br/>Code for generating Scons files from `.gyp` files. ||
 || Mark Mentovai || Input language design and implementation.<br/>Code for generating Xcode files from `.gyp` files.<br/>Approval of Mac (Xcode) build functionality. ||
 || Bradley Nelson || Code for generating Visual Studio files from `.gyp` files. ||
 || Randall Spangler || ||
