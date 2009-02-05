@@ -31,8 +31,9 @@ The overall design has the following characteristics:
     * On Linux, a `.gyp` file generates one SCons file and/or one Makefile per target
   * The `.gyp` file syntax is a Python data structure.
   * Use of arbitrary Python in `.gyp` files is forbidden.
-    * Use of eval() on `.gyp` file contents restricts the input to an evaluated expression, not arbitrary Python statements.
-  * Input data is a dictionary of keywords+values.
+    * Use of eval() with restricted globals and locals on `.gyp` file contents restricts the input to an evaluated expression, not arbitrary Python statements.
+    * All input is expected to comply with JSON, with two exceptions: the # character (not inside strings) begins a comment that lasts until the end of the line, and it trailing comments are permitted at the end of list and dict contents.
+  * Input data is a dictionary of keywords and values.
   * "Invalid" keywords on any given data structure are not illegal, they're just ignored.
     * TODO:  providing warnings on use of illegal keywords would help users catch typos.  Figure out something nice to do with this.
 
@@ -42,12 +43,12 @@ Some up-front design principles/thoughts/TODOs:
 
   * Re-use keywords consistently.
   * Keywords that allow configuration of a platform-specific concept get prefixed appropriately:
-    * Examples:  `vs_post_tools`, `xcode_framework_dirs`
+    * Examples:  `msvs_disabled_warnings`, `xcode_framework_dirs`
   * The input syntax is declarative and data-driven.
     * This gets enforced by using Python `eval()` (which only evaluates an expression) instead of `exec` (which executes arbitrary python)
   * Semantic meanings of specific keyword values get deferred until all are read and the configuration is being evaluated to spit out the appropriate file(s)
   * Source file lists:
-    * Are unordered, flat lists.  Any imposed ordering within the `.gyp` file (e.g. alphabetically) is purely by convention and for developer convenience.
+    * Are flat lists.  Any imposed ordering within the `.gyp` file (e.g. alphabetically) is purely by convention and for developer convenience.  When source files are linked or archived together, it is expected that this will occur in the order that files are listed in the `.gyp` file.
     * Source file lists contain no mechanism for by-hand folder configuration (`Filter` tags in Visual Studio, `Groups` in Xcode)
     * A folder hierarchy is created automatically that mirrors the file system
 
@@ -55,7 +56,7 @@ Some up-front design principles/thoughts/TODOs:
 
 {{{
 {
-  'settings': {
+  'target_defaults': {
     'defines': [
       'U_STATIC_IMPLEMENTATION',
       ["LOGFILE", 'foo.log',],
@@ -66,7 +67,7 @@ Some up-front design principles/thoughts/TODOs:
   },
   'targets': [
     {
-      'name': 'foo',
+      'target_name': 'foo',
       'type': 'static_library',
       'sources': [
         'foo/src/foo.cc',
@@ -79,7 +80,7 @@ Some up-front design principles/thoughts/TODOs:
       'conditions': [
          [ 'OS==mac', { 'sources': [ 'platform_test_mac.mm' ] } ]
       ],
-      'dependent_settings': {
+      'direct_dependent_settings': {
         'defines': [
           'UNIT_TEST',
         ],
@@ -101,75 +102,72 @@ This is the single dictionary in the `.gyp` file that defines the targets and ho
 
 The following keywords are meaningful within the top-level dictionary definition:
 
-|| `settings` || A dictionary of default settings to be inherited by all targets in the top-level dictionary.  See the "Settings keywords" section below. ||
+|| `conditions` || A conditional section that may contain other items that can be present in a top-level dictionary, on a conditional basis.  See the "Conditionals" section below. ||
+|| `includes` || A list of `.gypi` files to be included in the top-level dictionary. ||
+|| `target_defaults` || A dictionary of default settings to be inherited by all targets in the top-level dictionary.  See the "Settings keywords" section below. ||
 || `targets` || A list of target specifications.  See the "targets" below. ||
+|| `variables` || A dictionary containing variable definitions.  Each key in this dictionary is the name of a variable, and each value must be a string value that the variable is to be set to. ||
 
 == targets ==
 
 A list of dictionaries defining targets to be built by the files generated from this `.gyp` file.
 
-The following keywords have structural meaning for target definitions:
+Targets may contain `includes`, `conditions`, and `variables` sections as permitted in the root dictionary. The following additional keywords have structural meaning for target definitions:
 
-|| `conditions` || A list of condition specifications to be applied to the settings for this target. See the "Keyword: conditions" section below. ||
-|| `dependent_settings` || A dictionary of settings to be applied to other targets that depend on this target. ||
-
-The other keywords in a dictionary in the `targets` list are settings to be applied when building that target.  See the "Settings keywords" section below.
-
-== conditions ==
-
-A list of keyword+value pairs. The keyword is a string containing an expression to be evaluated. The value is a dictionary containing settings to be applied to the target's if the expression evaluates true.
-
-The `eval()` of the expression string takes place in the context of global and/or local dictionaries that we construct from the `.gyp` input data, and overrides the `__builtin__` dictionary, to prevent the execution of arbitrary Python code.
-
-TODO(sgk+mark):  document condition evaluation order
-
-== Settings keywords ==
-
-These are keywords whose values make up the bulk of the actual data written into the generated files.  Settings keywords can meaninfully show up in the following places:
-
-  * The `settings` section of the top-level dictionary
-  * A dictionary defining an individual target (in the `targets` list of the top-level dictionary)
-  * The `dependent_settings` dictionary within a dictionary defining a target.
-  * A dictionary associated with a conditional expression in the `conditions` section of a target
-
-The following keywords are meaningful within a settings section:
-
+|| `all_dependent_settings` || A dictionary of settings to be applied to all dependents of the target, transitively.  This includes direct dependents and the entire set of their dependents, and so on.  This section may contain anything found within a `target` dictionary, except `configurations`, `target_name`, and `type` sections.  Compare `direct_dependent_settings` and `link_settings`. ||
+|| `configurations` || A list of dictionaries defining build configurations for the target.  See the "Configurations" section below.
 || `defines` || A list of preprocesor definitions to be passed on the command line to the C/C++ compiler (via `-D` or `/D` options). ||
 || `dependencies` || A list of targets on which this target depends. Targets in other `.gyp` files are specified as `../path/to/other.gyp:target_we_want`. ||
+|| `direct_dependent_settings` || A dictionary of settings to be applied to other targets that depend on this target.  These settings will only be applied to direct dependents.  This section may contain anything found within a `target` dictionary, except `configurations`, `target_name`, and `type` sections.  Compare with `all_dependent_settings` and `link_settings`. ||
 || `include_dirs` || A list of include directories to be passed on the command line to the C/C++ compiler (via `-I` or `/I` options). ||
 || `libraries` || A list of list of libraries (and/or frameworks) on which this target depends. ||
-|| `name` || The name of a target being defined. ||
+|| `link_settings` || A dictionary of settings to be applied to targets in which this target's contents are linked.  `executable` and `shared_library` targets are linkable, so if they depend on a non-linkable target such as a `static_library`, they will adopt its `link_settings`.  This section can contain anything found within a `target` dictionary, except `configurations`, `target_name`, and `type` sections.  Compare `all_dependent_settings` and `direct_dependent_settings`. ||
 || `sources` || A list of source files that are used to build this target or which should otherwise show up in the IDE for this target.  In practice, we expect this list to be a union of all files necessary to build the target on all platforms, as well as other related files that aren't actually used for building, like README files. ||
-|| `type` || The type of target being defined. The list of acceptable `type` values is below.||
-|| `vs_props` || A list of Visual Studio property sheets (`.vsprops` files) to be used to build the targets. ||
-|| `xcode_configs` || A list of Xcode configurations (`.xcconfig` files) to be used to build the targets. ||
-|| `xcode_framework_dirs` || A list of framework directories be used to build the targets. ||
+|| `target_conditions` || Like `conditions`, but evaluation is delayed until the settings have been merged into an actual target.  `target_conditions` may be used to place conditionals into a `target_defaults` section but have them still depend on specific target settings. ||
+|| `target_name` || The name of a target being defined. ||
+|| `type` || The type of target being defined. This field currently supports `exexecutable`, `static_library`, `shared_library`, and `none`.  TODO: document `none`.||
+|| `msvs_props` || A list of Visual Studio property sheets (`.vsprops` files) to be used to build the target. ||
+|| `xcode_config` || An Xcode configuration (`.xcconfig` file) to be used to build the target (not currently implemented). ||
+|| `xcode_framework_dirs` || A list of framework directories be used to build the target. ||
 
-Valid `type` values are (TODO(sgk):  validate this stake-in-the-ground list with everyone):
+TODO(sgk+mark):  document settings merging with new `= + ? ! /` characters
 
-  * `static_library`
-  * `shared_library`
-  * `executable`
+== configurations =
 
-TODO(sgk+mark):  document settings merging with new `+ - ! /` characters
+`configurations` sections may be found within `targets` or `target_defaults` sections.  The `configurations` section is a list of dictionaries specifying different build configurations.  Because configurations are implemented as lists, it is not currently possible to override aspects of configurations that are imported into a target from a `target_defaults` section.
 
+NOTE: It is extremely important that each target within a project define the same set of configurations.  This continues to apply even when a project spans across multiple `.gyp` files.
+
+A configuration dictionary may contain anything that can be found within a target dictionary, except for `all_dependent_settings`, `configurations`, `dependencies`, `direct_dependent_settings`, `libraries`, `link_settings`, `sources`, `target_name`, and `type`.
+
+Configuration dictionaries may also contain these elements:
+
+|| `configuration_name` || Required attribute.  The name of the configuration. ||
+
+== Conditionals ==
+
+Conditionals may appear within any dictionary in a `.gyp` file.  There are two tpes of conditionals, which differ only in the timing of their processing.  `conditons` sections are processed shortly after loading `.gyp` files, and `target_conditons` sections are processed after all dependencies have been computed.
+
+A conditional section is introduced with a `conditions` or `target_conditions` dictionary keyword, and is composed of a list.  Each list contains two or three elements.  The first two elements, which are always required, are the conditional expression to evaluate and a dictionary containing settings to merge into the dictionary containing the `conditions` or `target_conditions` section if the expression evaluates to true.  The third, optional, list element is a dictionary to merge if the expression evaluates to false.
+
+The `eval()` of the expression string takes place in the context of global and/or local dictionaries that constructed from the `.gyp` input data, and overrides the `__builtin__` dictionary, to prevent the execution of arbitrary Python code.
 
 == Generated Xcode .pbxproj Files ==
 
-We derive the following things in a `project.pbxproj` plist file within the `.xcodeproj` bundle from the above input file formats as follows:
+We derive the following things in a `project.pbxproj` plist file within an `.xcodeproj` bundle from the above input file formats as follows:
 
-  * `Group hierarchy`: This is generated in a fixed format with contents derived from the input files. There is no provision for the user to specify additional groups or create a custom hierarchy. (TODO(all): RIGHT? Mark notes: Almost certainly, my generator allows for the flexibility but I wasn't planning on doing anything special in the glue.)
-    * `Configuration group`:
+  * `Group hierarchy`: This is generated in a fixed format with contents derived from the input files. There is no provision for the user to specify additional groups or create a custom hierarchy.
+    * `Configuration group`: This will be used with the `xcode_config` property above, if needed.
     * `Source group`: The union of the `sources` lists of all `targets` after applying appropriate `conditions`.  The resulting list is sorted and put into a group hierarchy that matches the layout of the directory tree on disk, with a root of // (the top of the hierarchy).
     * `Frameworks group`: Taken directly from `libraries` value for the target, after applying appropriate conditions.
     * `Projects group`: References to other `.xcodeproj` bundles that are needed by the `.xcodeproj` in which the group is contained.
     * `Products group`: Output from the various targets.
   * `Project References`:
   * `Project Configurations`:
+    * Per-`.xcodeproj` file settings are not supported, all settings are applied at the target level.
   * `Targets`:
     * `Phases`: Copy sources, link with libraries/frameworks, ...
-    * `Target Configurations`: Specified by input.  TODO(mark): Implement.
-    * `File Configurations`: Per-build file settings are not supported.
+    * `Target Configurations`: Specified by input.
     * `Dependencies`: (local and remote)
 
 == Generated Visual Studio .vcproj Files ==
@@ -231,7 +229,7 @@ TODO(sgk):  Notes/Question from very first prototype draft of the language.  Mak
       * File type
       * Target type
       * Individual file
-    * Files may have custom settings per file per platform
+    * Files may have custom settings per file per platform, but we probably don't care or need to support this in gyp.
   * Will all linked non-Chromium projects always use the same versions of every subsystem?
   * Variants are difficult.  We've identified the following variants (some specific to Chromium, some typical of other projects in the same ballpark):
     * Target platform
