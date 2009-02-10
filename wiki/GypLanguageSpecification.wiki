@@ -3,7 +3,7 @@ GYP (Generate Your Projects)
 <BR>Status: Draft (as of 2009-01-30)
 
 Mark Mentovai <mark@chromium.org> _et al._
-<BR>Modified: 2009-01-30
+<BR>Modified: 2009-02-10
 
 Contents
 
@@ -59,7 +59,7 @@ Some up-front design principles/thoughts/TODOs:
   'target_defaults': {
     'defines': [
       'U_STATIC_IMPLEMENTATION',
-      ["LOGFILE", 'foo.log',],
+      ['LOGFILE', 'foo.log',],
     ],
     'include_dirs': [
       '..',
@@ -114,6 +114,7 @@ A list of dictionaries defining targets to be built by the files generated from 
 
 Targets may contain `includes`, `conditions`, and `variables` sections as permitted in the root dictionary. The following additional keywords have structural meaning for target definitions:
 
+|| `actions` || A list of special custom actions to perform on a specific input file, or files, to produce output files.  See the "Actions" section below. ||
 || `all_dependent_settings` || A dictionary of settings to be applied to all dependents of the target, transitively.  This includes direct dependents and the entire set of their dependents, and so on.  This section may contain anything found within a `target` dictionary, except `configurations`, `target_name`, and `type` sections.  Compare `direct_dependent_settings` and `link_settings`. ||
 || `configurations` || A list of dictionaries defining build configurations for the target.  See the "Configurations" section below. ||
 || `defines` || A list of preprocesor definitions to be passed on the command line to the C/C++ compiler (via `-D` or `/D` options). ||
@@ -138,7 +139,7 @@ TODO(sgk+mark):  document settings merging with new `= + ? ! /` characters
 
 NOTE: It is extremely important that each target within a project define the same set of configurations.  This continues to apply even when a project spans across multiple `.gyp` files.
 
-A configuration dictionary may contain anything that can be found within a target dictionary, except for `all_dependent_settings`, `configurations`, `dependencies`, `direct_dependent_settings`, `libraries`, `link_settings`, `sources`, `target_name`, and `type`.
+A configuration dictionary may contain anything that can be found within a target dictionary, except for `actions`, `all_dependent_settings`, `configurations`, `dependencies`, `direct_dependent_settings`, `libraries`, `link_settings`, `sources`, `target_name`, and `type`.
 
 Configuration dictionaries may also contain these elements:
 
@@ -151,6 +152,49 @@ Conditionals may appear within any dictionary in a `.gyp` file.  There are two t
 A conditional section is introduced with a `conditions` or `target_conditions` dictionary keyword, and is composed of a list.  Each list contains two or three elements.  The first two elements, which are always required, are the conditional expression to evaluate and a dictionary containing settings to merge into the dictionary containing the `conditions` or `target_conditions` section if the expression evaluates to true.  The third, optional, list element is a dictionary to merge if the expression evaluates to false.
 
 The `eval()` of the expression string takes place in the context of global and/or local dictionaries that constructed from the `.gyp` input data, and overrides the `__builtin__` dictionary, to prevent the execution of arbitrary Python code.
+
+== Actions ==
+
+An `actions` section provides a list of custom build actions to perform on inputs, producing outputs.  The `actions` section is organized as a list.  Each item in the list is a dictionary having the following form:
+
+|| `action_name` || string || The name of the action.  Depending on how actions are implemented in the various generators, some may desire or require this property to be set to a unique name; others may ignore this property entirely. ||
+|| `inputs` || list || A list of pathnames treated as inputs to the custom action. ||
+|| `outputs` || list || A list of pathnames that the custom action produces. ||
+|| `action` || string || A command line invocation used to produce `outputs` from `inputs`.  For maximum cross-platform compatibility, invocations that require a Python interpreter should be specified as strings beginning with `"python "`.  This will enable generators for environments with specialized Python installations to be able to perform the action in an appropriate Python environment. ||
+
+Build environments will compare `inputs` and `outputs`.  If any `output` is missing or is outdated relative to any `input`, the custom action will be invoked.  If all `outputs` are present and newer than all `inputs`, the `outputs` are considered up-to-date and the action need not be invoked.
+
+Actions are implemented in Xcode as shell script build phases performed prior to the compilation phase.  In the Visual Studio generator, actions appear files with a `FileConfiguration` containing a custom `VCCustomBuildTool` specifying the remainder of the inputs, the outputs, and the action.
+
+Combined with variable expansions, actions can be quite powerful.  Here is an example action that leverages variable expansions to minimize duplication of pathnames:
+
+{{{
+      'sources': [
+        # libraries.cc is generated by the js2c action below.
+        '<(INTERMEDIATE_DIR)/libraries.cc',
+      ],
+      'actions': [
+        {
+          'variables': {
+            'core_library_files': [
+              'src/runtime.js',
+              'src/v8natives.js',
+              'src/macros.py',
+            ],
+          },
+          'action_name': 'js2c',
+          'inputs': [
+            'tools/js2c.py',
+            '<@(core_library_files)',
+          ],
+          'outputs': [
+            '<(INTERMEDIATE_DIR)/libraries.cc',
+            '<(INTERMEDIATE_DIR)/libraries-empty.cc',
+          ],
+          'action': 'python tools/js2c.py <(_outputs) CORE <(core_library_files)',
+        },
+      ],
+}}}
 
 == Generated Xcode .pbxproj Files ==
 
