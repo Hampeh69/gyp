@@ -1,0 +1,184 @@
+﻿#labels Featured
+GYP (Generate Your Projects)
+<BR>Status: Draft (as of 2009-02-24)
+
+Mark Mentovai <mark@chromium.org> _et al._
+<BR>Modified: 2009-02-24
+
+Contents
+
+<wiki:toc max_depth="2" />
+
+= Introduction =
+
+This document is intended to provide a user-level guid to GYP.
+The emphasis here is on how to use GYP to accomplish specific tasks,
+not on the complete technical language specification.  (For that,
+see the GypLanguageSpecification.)
+
+= Use Cases =
+
+These use cases are the most common actions performed by developers
+using GYP.  The intent is to try to cover roughly 90% of what developers
+need in six or so common cases.
+
+== Add New Source Files ==
+
+=== Add a file that builds on all platforms ===
+
+*Simplest possible case*:  You have the file(s) building on all platforms.
+
+Just add the file(s) to the `sources` list of the appropriate `target`.
+
+=== Add a platform-specific file ===
+
+*Simple case*:  your platform-specific file is named `*_linux.{ext}`,
+`*_mac.ext}` or `*_win.{ext}`.
+
+Add the file to the `sources` list of the appropriate `target`.
+The target should, in general, have an appropriate `conditions` entry
+to remove the files that aren't appropriate for the current platform.
+
+*Harder case*:  your platform-specific file does not use a
+`*_{linux,mac,win}` infix (or some other pattern that's already in the
+`conditions` for the target).  You can't change the file name, perhaps
+because the file is external.
+
+Add the file to the `sources` list of the appropriate `target`.  Add an
+appropriate `conditions` section to exclude the specific files name:
+
+{{{
+  'conditions': [
+    ['OS != "linux"', {
+        'sources!': [
+          # Linux-only; exclude on other platforms.
+          'platform_specific.cc',
+        ]
+      },
+    ],
+  ],
+}}}
+
+== Add a New Library ==
+
+TBD
+
+(Discuss setting up `direct_dependent_settings` and `export_dependent_settings`.)
+
+{{{
+  {
+      .
+      .
+      .
+    'targets': [
+        .
+        .
+        .
+      {
+        'target_name': 'new_target',
+        'type': 'static_library',
+        'include_dirs': [
+          '..',
+        ],
+        'dependencies': [
+          'other_gyp1',
+          'other_gyp2:specific_target',
+        ],
+        'direct_dependent_settings': [
+          'TBD',
+        ],
+        'export_dependent_settings': [
+          'TBD',
+        ],
+        'sources': [
+          'new_additional_source.cc',
+          'new_target.cc',
+        ],
+      },
+    ],
+      .
+      .
+      .
+  }
+}}}
+
+== Add a New Executable ==
+
+=== Add an executable that builds on all platforms ===
+
+TBD
+
+{{{
+  {
+      .
+      .
+      .
+    'targets': [
+        .
+        .
+        .
+      {
+        'target_name': 'new_target',
+        'type': 'executable',
+        'include_dirs': [
+          '..',
+        ],
+        'dependencies': [
+          'other_gyp1',
+          'other_gyp2:specific_target',
+        ],
+        'sources': [
+          'new_additional_source.cc',
+          'new_target.cc',
+        ],
+      },
+    ],
+      .
+      .
+      .
+  }
+}}}
+
+=== Add a platform-specific executable ===
+
+TBD
+
+(Discuss adding to the appropriate `conditions` block.)
+
+{{{
+  {
+    .
+    .
+    .
+    'conditions': [
+      [ 'OS == "win", {
+        'targets': [
+          {
+            'target_name': 'new_target',
+            'type': 'executable',
+            'include_dirs': [
+              '..',
+            ],
+            'dependencies': [
+              'other_gyp1',
+              'other_gyp2:specific_target',
+            ],
+            'sources': [
+              'new_additional_source.cc',
+              'new_target.cc',
+            ],
+          },
+        ],
+      ],
+    ],
+  }
+}}}
+
+== Move Files (Refactoring) ==
+
+TBD
+
+== Merge WebKit ==
+
+(Should end up as part of Chromium documentation;
+here now to get the GYP parts right before moving elsewhere.)
