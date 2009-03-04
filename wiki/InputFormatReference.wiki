@@ -8,11 +8,11 @@
 
 The following primitive types are found within input files:
 
- * `string` values, which may be represented by enclosing them in `'single quotes'` or `"double quotes"`.  By convention, single quotes are used.
- * `int` (integer) values, which are represented in decimal without any special decoration.  `int` values are fairly rare in input files, but have a few applications in boolean contexts, where the convention is to represent true values with `1` and false with `0`.
- * `list` values, which are represented as a sequence of items separated by commas (`,`) within square brackets (`[`, `]`).  A `list` may contain any other primitive types, including other `list` items.  Generally, each item of a `list` must be of the same type as all other items in the `list`, but in some cases (such as within `conditions` sections), the `list` structure is more tightly specified.  A trailing comma is permitted.
+ * String values, which may be represented by enclosing them in `'single quotes'` or `"double quotes"`.  By convention, single quotes are used.
+ * Integer values, which are represented in decimal without any special decoration.  Integers are fairly rare in input files, but have a few applications in boolean contexts, where the convention is to represent true values with `1` and false with `0`.
+ * Lists, which are represented as a sequence of items separated by commas (`,`) within square brackets (`[` and `]`).  A list may contain any other primitive types, including other lists.  Generally, each item of a list must be of the same type as all other items in the list, but in some cases (such as within `conditions` sections), the list structure is more tightly specified.  A trailing comma is permitted.
 
-    This example `list` contains three string values.
+    This example list contains three string values.
 
     {{{
 [
@@ -21,9 +21,9 @@ The following primitive types are found within input files:
   'Projects',
 ]
     }}}
- * `dict` (dictionary) values, which map keys to values.  All keys are of `string` type.  Values may be of any other primitive type, including other `dict` items.  A `dict` is enclosed within curly braces (`{`, `}`).  Keys precede values, separated by a colon (`:`).  Successive `dict` entries are separated by commas (`,`).  A trailing comma is permitted.  It is an error for keys to be duplicated within a single `dict` as written in an input file, although keys may replace other keys during merging.  See merging.
+ * Dictionaries, which map keys to values.  All keys are strings.  Values may be of any other primitive type, including other dictionaries.  A dictionary is enclosed within curly braces (`{` and `}`).  Keys precede values, separated by a colon (`:`).  Successive dictionary entries are separated by commas (`,`).  A trailing comma is permitted.  It is an error for keys to be duplicated within a single dictionary as written in an input file, although keys may replace other keys during [#Merging merging].
 
-    This example `dict` maps each of three keys to different values.
+    This example dictionary maps each of three keys to different values.
 
     {{{
 {
@@ -35,11 +35,11 @@ The following primitive types are found within input files:
 
 == Overall Structure ==
 
-A GYP input file is organized as structured data.  At the root scope of each `.gyp` or `.gypi` (include) file is a `dict`.  The keys and values of this `dict`, along with any descendants contained within the values, provide the data contained within the file.  This data is given meaning by interpreting specific key names and their associated values in specific ways (see [#Settings_Keys Settings Keys]).
+A GYP input file is organized as structured data.  At the root scope of each `.gyp` or `.gypi` (include) file is a dictionary.  The keys and values of this dictionary, along with any descendants contained within the values, provide the data contained within the file.  This data is given meaning by interpreting specific key names and their associated values in specific ways (see [#Settings_Keys Settings Keys]).
 
-== Comments ==
+== Comments (#) ==
 
-Within an input file, a comment is introduced by a pound sign (`#`) not within a `string`.  Any text following the pound sign, up until the end of the line, is treated as a comment.
+Within an input file, a comment is introduced by a pound sign (`#`) not within a string.  Any text following the pound sign, up until the end of the line, is treated as a comment.
 
 ==== Example ====
 
@@ -53,29 +53,29 @@ Within an input file, a comment is introduced by a pound sign (`#`) not within a
 }
 }}}
 
-In this example, the # in `'Sharp #2 pencil'` is not taken as introducing a comment because it occurs within a `string`, but the text after `'Safety scissors'` is treated as a comment having no impact on the data within the file.
+In this example, the # in `'Sharp #2 pencil'` is not taken as introducing a comment because it occurs within a string, but the text after `'Safety scissors'` is treated as a comment having no impact on the data within the file.
 
 = Merging =
 
-== Merge Basics ==
+== Merge Basics (=, ?, +) ==
 
-Many operations on GYP input files occurs by merging `dict` and `list` items together.  During merge operations, it is important to recognize the distinction between source and destination values.  Items from the source value are merged into the destination, which leaves the source unchanged and the destination modified by the source.  A `dict` may only be merged into another `dict`, and a `list` may only be merged into another `list`.
+Many operations on GYP input files occurs by merging dictionary and list items together.  During merge operations, it is important to recognize the distinction between source and destination values.  Items from the source value are merged into the destination, which leaves the source unchanged and the destination modified by the source.  A dictionary may only be merged into another dictionary, and a list may only be merged into another list.
 
- * When merging a `dict`, for each key in the source:
-   * If the key does not exist in the destination `dict`, insert it and copy the associated value directly.
+ * When merging a dictionary, for each key in the source:
+   * If the key does not exist in the destination dictionary, insert it and copy the associated value directly.
    * If the key does exist:
-     * If the associated value is a `dict`, perform the `dict` merging procedure using the source's and destination's value `dict`s.
-     * If the associated value is a `list`, perform the `list` merging procedure using the source's and destination's value `list`s.
-     * If the associated value is a `string` or `int`, the destination value is replaced by the source value.
- * When merging a `list`, merge according to the suffix appended to the key name, if the list is a value within a `dict`.
-   * If the key ends with an equals sign (`=`), the policy is for the source `list` to completely replace the destination `list` if it exists.  _Mnemonic: `=` for assignment._
-   * If the key ends with a question mark (`?`), the policy is for the source `list` to be set as the destination `list` only if the key is not already present in the destination.  _Mnemonic: `?` for conditional assignment_.
-   * If the key ends with a plus sign (`+`), the policy is for the source `list` contents to be prepended to the destination `list`.  _Mnemonic: `+` for addition or concatenation._
-   * If the list key is undecorated, the policy is for the source `list` contents to be appended to the destination `list`.  This is the default `list` merge policy.
+     * If the associated value is a dictionary, perform the dictionary merging procedure using the source's and destination's value dictionaries.
+     * If the associated value is a list, perform the list merging procedure using the source's and destination's value lists.
+     * If the associated value is a string or integer, the destination value is replaced by the source value.
+ * When merging a list, merge according to the suffix appended to the key name, if the list is a value within a dictionary.
+   * If the key ends with an equals sign (`=`), the policy is for the source list to completely replace the destination list if it exists.  _Mnemonic: `=` for assignment._
+   * If the key ends with a question mark (`?`), the policy is for the source list to be set as the destination list only if the key is not already present in the destination.  _Mnemonic: `?` for conditional assignment_.
+   * If the key ends with a plus sign (`+`), the policy is for the source list contents to be prepended to the destination list.  _Mnemonic: `+` for addition or concatenation._
+   * If the list key is undecorated, the policy is for the source list contents to be appended to the destination list.  This is the default list merge policy.
 
 ==== Example ====
 
-Source `dict`:
+Source dictionary:
 
 {{{
 {
@@ -91,7 +91,7 @@ Source `dict`:
 }
 }}}
 
-Destination `dict`:
+Destination dictionary:
 
 {{{
 {
@@ -114,7 +114,7 @@ Destination `dict`:
 }
 }}}
 
-Merged `dict`:
+Merged dictionary:
 
 {{{
 {
@@ -141,9 +141,9 @@ Merged `dict`:
 
 == Pathname Relativization ==
 
-In a `.gyp` or `.gypi` file, many `string` values are treated as pathnames relative to the file in which they are defined.
+In a `.gyp` or `.gypi` file, many string values are treated as pathnames relative to the file in which they are defined.
 
-`string` values associated with the following keys, or contained within `list`s associated with the following keys, are treated as pathnames:
+String values associated with the following keys, or contained within lists associated with the following keys, are treated as pathnames:
 
  * destination
  * files
@@ -157,7 +157,7 @@ In a `.gyp` or `.gypi` file, many `string` values are treated as pathnames relat
  * msvs_cygwin_dirs
  * msvs_props
 
-Additionally, `string` values associated with keys ending in the following suffixes, or contained within `list`s associated with keys ending in the following suffixes, are treated as pathnames:
+Additionally, string values associated with keys ending in the following suffixes, or contained within lists associated with keys ending in the following suffixes, are treated as pathnames:
 
  * `_dir`
  * `_dirs`
@@ -166,7 +166,7 @@ Additionally, `string` values associated with keys ending in the following suffi
  * `_path`
  * `_paths`
 
-However, any `string` value beginning with any of these characters is excluded from pathname relativization:
+However, any string value beginning with any of these characters is excluded from pathname relativization:
 
  * `/` for identifying absolute paths.
  * `$` for introducing build system variable expansions.
@@ -177,7 +177,7 @@ When merging such relative pathnames, they are adjusted so that they can remain 
 
 ==== Example ====
 
-Source `dict` from `../build/common.gypi`:
+Source dictionary from `../build/common.gypi`:
 
 {{{
 {
@@ -187,7 +187,7 @@ Source `dict` from `../build/common.gypi`:
 }
 }}}
 
-Target `dict`, from `base.gyp`:
+Target dictionary, from `base.gyp`:
 
 {{{
 {
@@ -195,7 +195,7 @@ Target `dict`, from `base.gyp`:
 }
 }}}
 
-Merged `dict`:
+Merged dictionary:
 
 {{{
 {
@@ -206,15 +206,15 @@ Merged `dict`:
 }
 }}}
 
-Because of pathname relativization, after the merge is complete, all of the pathnames in the merged `dict` are valid relative to the directory containing `base.gyp`.
+Because of pathname relativization, after the merge is complete, all of the pathnames in the merged dictionary are valid relative to the directory containing `base.gyp`.
 
 == List Singletons ==
 
-Some `list` items are treated as singletons, and the `list` merge process will enforce special rules when merging them.  At present, any `string` item in a list that does not begin with a dash (`-`) is treated as a singleton, although *this is subject to change.*  When appending or prepending a singleton to a list, if the item is already in the list, only the earlier instance is retained in the merged list.
+Some list items are treated as singletons, and the list merge process will enforce special rules when merging them.  At present, any string item in a list that does not begin with a dash (`-`) is treated as a singleton, although *this is subject to change.*  When appending or prepending a singleton to a list, if the item is already in the list, only the earlier instance is retained in the merged list.
 
 ==== Example ====
 
-Source `dict`:
+Source dictionary:
 
 {{{
 {
@@ -225,7 +225,7 @@ Source `dict`:
 }
 }}}
 
-Destination `dict`:
+Destination dictionary:
 
 {{{
 {
@@ -236,7 +236,7 @@ Destination `dict`:
 }
 }}}
 
-Merged `dict`:
+Merged dictionary:
 
 {{{
 {
@@ -250,13 +250,13 @@ Merged `dict`:
 
 = Including Other Files =
 
-If the `-I` (`--include`) argument was used to invoke GYP, any files specified will be implicitly merged into the root `dict` of all `.gyp` files.
+If the `-I` (`--include`) argument was used to invoke GYP, any files specified will be implicitly merged into the root dictionary of all `.gyp` files.
 
-An [#includes includes] section may be placed anywhere within a `.gyp` or `.gypi` (include) file.  `includes` sections contain lists of other files to include.  They are processed sequentially and merged into the enclosing `dict` at the point that the `includes` section was found.  `includes` sections at the root of a `.gyp` file `dict` are merged after any `-I` includes from the command line.
+An [#includes includes] section may be placed anywhere within a `.gyp` or `.gypi` (include) file.  `includes` sections contain lists of other files to include.  They are processed sequentially and merged into the enclosing dictionary at the point that the `includes` section was found.  `includes` sections at the root of a `.gyp` file dictionary are merged after any `-I` includes from the command line.
 
-[#includes includes] sections are processed immediately after a file is loaded, even before [#Variables_and_Conditionals variable and conditional processing], so it is not possible to include a file based on a [#Variable_Expansions variable reference].  While it would be useful to be able to include files based on variable expansions, it is most likely more useful to allow included files access to variables set by the files that included them.
+[#includes includes] sections are processed immediately after a file is loaded, even before [#Variables_and_Conditionals variable and conditional processing], so it is not possible to include a file based on a [#Variable_Expansions_(<,_>,_<@,_>@) variable reference].  While it would be useful to be able to include files based on variable expansions, it is most likely more useful to allow included files access to variables set by the files that included them.
 
-An [#includes includes] section may, however, be placed within a [#Conditionals conditional] section.  The included file itself will be loaded unconditionally, but its `dict` will be discarded if the associated condition is not true.
+An [#includes includes] section may, however, be placed within a [#Conditionals conditional] section.  The included file itself will be loaded unconditionally, but its dictionary will be discarded if the associated condition is not true.
 
 = Variables and Conditionals =
 
@@ -265,14 +265,14 @@ An [#includes includes] section may, however, be placed within a [#Conditionals 
 There are three main types of variables within GYP.
 
  * Predefined variables.  By convention, these are named with `CAPITAL_LETTERS`.  Predefined variables are set automatically by GYP.  They may be overridden, but it is not advisable to do so.  See [#Predefined_Variables Predefined Variables] for a list of variables that GYP provides.
- * User-defined variables.  Within any `dict`, a key named `variables` can be provided, containing a mapping between variable names (keys) and their contents (values), which may be `string`s, `int`s, or `list`s of `string`s.  By convention, user-defined variables are named with `lowercase_letters`.
- * Automatic variables.  Within any `dict`, any key with a `string` value has a corresponding automatic variable whose name is the same as the key name with an underscore (`_`) prefixed.  For example, if your `dict` contains `type: 'static_library'`, an automatic variable named `_type` will be provided, and its value will be a `string`, `'static_library'`.
+ * User-defined variables.  Within any dictionary, a key named `variables` can be provided, containing a mapping between variable names (keys) and their contents (values), which may be strings, integers, or lists of strings.  By convention, user-defined variables are named with `lowercase_letters`.
+ * Automatic variables.  Within any dictionary, any key with a string value has a corresponding automatic variable whose name is the same as the key name with an underscore (`_`) prefixed.  For example, if your dictionary contains `type: 'static_library'`, an automatic variable named `_type` will be provided, and its value will be a string, `'static_library'`.
 
 Variables are inherited from enclosing scopes.
 
-=== Providing Default Values for Variables ===
+=== Providing Default Values for Variables (%) ===
 
-Within a `variables` section, keys named with percent sign (`%`) suffixes mean that the variable should be set only if it is undefined at the time it is processed.  This can be used to provide defaults for variables that would otherwise be undefined, so that they may reliably be used in variable expansion (See) or conditional processing (See).
+Within a `variables` section, keys named with percent sign (`%`) suffixes mean that the variable should be set only if it is undefined at the time it is processed.  This can be used to provide defaults for variables that would otherwise be undefined, so that they may reliably be used in [#Variables_and_Conditionals variable expansion or conditional processing].
 
 === Predefined Variables ===
 
@@ -284,8 +284,8 @@ Each GYP generator module provides defaults for the following variables:
  The `gypd` (debug) generator module does not provide a predefined value for `OS`.  When invoking GYP with the `gypd` module, if a value for `OS` is needed, it must be provided on the command line, such as `gyp -f gypd -DOS=mac`.
 
 GYP generators also provide defaults for these variables.  They may be expressed in terms of variables used by the build system that they generate for, often in `$(VARIABLE)` format.  For example, the GYP `PRODUCT_DIR` variable maps to the Xcode `BUILT_PRODUCTS_DIR` variable, so `PRODUCT_DIR` is defined by the Xcode generator as `$(BUILT_PRODUCTS_DIR)`.
- * `EXECUTABLE_PREFIX`: A prefix, if any, applied to executable names.  Usually this will be an empty `string`.
- * `EXECUTABLE_SUFFIX`: A suffix, if any, applied to executable names.  On Windows, this will be `.exe`, elsewhere, it will usually be an empty `string`.
+ * `EXECUTABLE_PREFIX`: A prefix, if any, applied to executable names.  Usually this will be an empty string.
+ * `EXECUTABLE_SUFFIX`: A suffix, if any, applied to executable names.  On Windows, this will be `.exe`, elsewhere, it will usually be an empty string.
  * `INTERMEDIATE_DIR`: A directory that can be used to place intermediate build results in.  `INTERMEDIATE_DIR` is only guaranteed to be accessible within a single target (See targets).  This variable is most useful within the context of rules and actions (See rules, See actions).  Compare with `SHARED_INTERMEDIATE_DIR`.
  * `PRODUCT_DIR`: The directory in which the primary output of each target, such as executables and libraries, is placed.
  * `RULE_INPUT_ROOT`: See Rules.
@@ -301,7 +301,7 @@ The following additional predefined variables may be available under certain cir
 
 A user-defined variable may be defined in terms of other variables, but not other variables that have definitions provided in the same scope.
 
-=== Variable Expansions ===
+=== Variable Expansions (<, >, <@, >@) ===
 
 GYP provides two forms of variable expansions, “early” or “pre” expansions, and “late,” “post,” or “target” expansions.  They have similar syntax, differing only in the character used to introduce them.
 
@@ -312,26 +312,26 @@ The difference the two phases of expansion is described in [#Early_and_Late_Phas
 
 These characters were chosen based upon the requirement that they not conflict with the variable format used natively by build systems.  While the dollar sign (`$`) is the most natural fit for variable expansions, its use was ruled out because most build systems already use that character for their own variable expansions.  Using different characters means that no escaping mechanism was needed to differentiate between GYP variables and build system variables, and writing build system variables into GYP files is not cumbersome.
 
-Variables may contain `list`s or `string`s, and variable expansions may occur in `list` or `string` context.  There are variant forms of variable expansions that may be used to determine how each type of variable is to be expanded in each context.
+Variables may contain lists or strings, and variable expansions may occur in list or string context.  There are variant forms of variable expansions that may be used to determine how each type of variable is to be expanded in each context.
 
  * When a variable is referenced by `<(VAR)` or `>(VAR)`:
-  * If `VAR` is a `string`, the variable reference within the `string` is replaced by variable's `string` value.
-  * If `VAR` is a `list`, the variable reference within the `string` is replaced by a `string` containing the concatenation of all of the variable’s `list` items.  Generally, the items are joined with spaces between each, but the specific behavior is generator-specific.  The precise encoding used by any generator should be one that would allow each list item to be treated as a separate argument when used as program arguments on the system that the generator produces output for.
+  * If `VAR` is a string, the variable reference within the string is replaced by variable's string value.
+  * If `VAR` is a list, the variable reference within the string is replaced by a string containing the concatenation of all of the variable’s list items.  Generally, the items are joined with spaces between each, but the specific behavior is generator-specific.  The precise encoding used by any generator should be one that would allow each list item to be treated as a separate argument when used as program arguments on the system that the generator produces output for.
  * When a variable is referenced by `<@(VAR)` or `>@(VAR)`:
   * The expansion must occur in list context.
   * The list item must be `'<@(VAR)'` or `'>@(VAR)'` exactly.
-  * If `VAR` is a `list`, each of its elements are inserted into the `list` in which expansion is taking place, replacing the `list` item containing the variable reference.
-  * If `VAR` is a `string`, the `string` is converted to a `list` which is inserted into the `list` in which expansion is taking place as above.  The conversion into a list is generator-specific, but generally, spaces in the `string` are taken as separators between `list` items.  The specific method of converting the `string` to a `list` should be the inverse of the encoding method used to expand `list` variables in `string` context, above.
+  * If `VAR` is a list, each of its elements are inserted into the list in which expansion is taking place, replacing the list item containing the variable reference.
+  * If `VAR` is a string, the string is converted to a list which is inserted into the list in which expansion is taking place as above.  The conversion into a list is generator-specific, but generally, spaces in the string are taken as separators between list items.  The specific method of converting the string to a list should be the inverse of the encoding method used to expand list variables in string context, above.
 
 GYP treats references to undefined variables as errors.
 
-=== Command Expansions ===
+=== Command Expansions (!, !@) ===
 
 Command expansions function similarly to variable expansions, but instead of resolving variable references, they cause GYP to execute a command at generation time and use the command’s output as the replacement.  Command expansions are introduced by the exclamation mark (`!`) character.
 
 All command expansions are performed alongside “late,” “post,” or “target” variable expansions.  There is no “early” or “pre” form of command expansion.
 
-In a command expansion, the entire string contained within the parentheses is passed to the system’s shell.  The command’s output is assigned to a `string` value that may subsequently be expanded in `list` context in the same way as variable expansions if an `@` character is used.
+In a command expansion, the entire string contained within the parentheses is passed to the system’s shell.  The command’s output is assigned to a string value that may subsequently be expanded in list context in the same way as variable expansions if an `@` character is used.
 
 GYP treats command failures (as indicated by a nonzero exit status) during command expansion as errors.
 
@@ -379,8 +379,8 @@ The difference the two phases of evaluation is described in [#Early_and_Late_Pha
 
 GYP performs two phases of variable expansion and conditional evaluation:
 
- * The “early” or “pre” phase operates on [#conditions conditions] sections and the `<` form of [#Variable_Expansions variable expansions].
- * The “late,” “post,” or “target” phase operates on [#target_conditions target_conditions] sections, the `>` form of [#Variable_Expansions variable expansions], and on the `!` form of [#Command_Expansions command expansions].
+ * The “early” or “pre” phase operates on [#conditions conditions] sections and the `<` form of [#Variable_Expansions_(<,_>,_<@,_>@) variable expansions].
+ * The “late,” “post,” or “target” phase operates on [#target_conditions target_conditions] sections, the `>` form of [#Variable_Expansions_(<,_>,_<@,_>@) variable expansions], and on the `!` form of [#Command_Expansions_(!,_!@) command expansions].
 
 These two phases are provided because there are some circumstances in which each is desirable.
 
@@ -432,22 +432,23 @@ The conditional needs to be evaluated only in target context; it is nonsense out
 
 === Expansion and Evaluation Performed Simultaneously ===
 
-During any expansion and evaluation phase, both expansion and evaluation are performed simultaneously.  The process for handling variable expansions and conditional evaluation within a `dict` is:
+During any expansion and evaluation phase, both expansion and evaluation are performed simultaneously.  The process for handling variable expansions and conditional evaluation within a dictionary is:
 
  * Load [#Variables automatic variables] (those with leading underscores).
- * If a [#variables variables] section is present, recurse into its `dict`.  This allows [#Conditionals conditionals] to be present within the `variables` `dict`.
+ * If a [#variables variables] section is present, recurse into its dictionary.  This allows [#Conditionals conditionals] to be present within the `variables` dictionary.
  * Load [#User-Defined Variables user-defined variables] from the [#variables variables] section.
- * For each string value in the `dict`, perform [#Variable_Expansions variable expansion] and, if operating during the “late” phase, [#Command_Expansions command expansions].
+ * For each string value in the dictionary, perform [#Variable_Expansions_(<,_>,_<@,_>@) variable expansion] and, if operating during the “late” phase, [#Command_Expansions_(!,_!@) command expansions].
  * Reload [#Variables automatic variables] and [#User-Defined Variables user-defined variables] because the variable expansion step may have resulted in changes to the automatic variables.
- * If a [#conditions conditions] or [#target_conditions target_conditions] section (depending on phase) is present, recurse into its `dict`.  This is done after variable expansion so that conditionals may take advantage of expanded automatic variables.
+ * If a [#conditions conditions] or [#target_conditions target_conditions] section (depending on phase) is present, recurse into its dictionary.  This is done after variable expansion so that conditionals may take advantage of expanded automatic variables.
+ * Evaluate [#Conditionals conditionals].
  * Reload [#Variables automatic variables] and [#User-Defined Variables user-defined variables] because the conditional evaluation step may have resulted in changes to the automatic variables.
- * Recurse into child `dict`s or `list`s that have not yet been processed.
+ * Recurse into child dictionaries or lists that have not yet been processed.
 
-One quirk of this ordering is that you cannot expect a [#variables variables] section within a `dict`’s [#Conditionals conditional] to be effective in the `dict` itself, but the added variables will be effective in any child `dict`s or `list`s.  It is thought to be far more worthwhile to provide resolved [#Variables automatic variables] to [#Conditionals conditional] sections, though.  As a workaround, to conditionalize variable values, place a [#conditions conditions] or [#target_conditions target_conditions] section within the [#variables variables] section.
+One quirk of this ordering is that you cannot expect a [#variables variables] section within a dictionary’s [#Conditionals conditional] to be effective in the dictionary itself, but the added variables will be effective in any child dictionaries or lists.  It is thought to be far more worthwhile to provide resolved [#Variables automatic variables] to [#Conditionals conditional] sections, though.  As a workaround, to conditionalize variable values, place a [#conditions conditions] or [#target_conditions target_conditions] section within the [#variables variables] section.
 
 = Dependencies and Dependents =
 
-In GYP, “dependents” are targets that rely on other targets, called “dependencies.”  Dependents declare their reliance with a special section within their target `dict`, [#dependencies dependencies].
+In GYP, “dependents” are targets that rely on other targets, called “dependencies.”  Dependents declare their reliance with a special section within their target dictionary, [#dependencies dependencies].
 
 == Dependent Settings ==
 
@@ -459,7 +460,7 @@ It is useful for dependents to “advertise” settings to their dependencies. 
 
 Furthermore, in some cases, a target needs to pass its dependencies’ settings on to its own dependents.  This might happen when a target’s own public header files include header files provided by its dependency.  [#export_dependent_settings export_dependent_settings] allows a target to declare dependencies for which [#direct_dependent_settings direct_dependent_settings] should be passed through to its own dependents.
 
-Dependent settings processing merges a copy of the relevant dependent settings `dict` from a dependency into its relevant dependent targets.
+Dependent settings processing merges a copy of the relevant dependent settings dictionary from a dependency into its relevant dependent targets.
 
 In most instances, [#direct_dependent_settings direct_dependent_settings] will be used.  There are very few cases where [#all_dependnet_settings all_dependent_settings] is actually correct; in most of the cases where it is tempting to use, it would be preferable to declare [#export_dependent_settings export_dependent_settings].  Most [#libraries libraries] and [#library_dirs library_dirs] sections should be placed within [#link_settings link_settings] sections.
 
@@ -491,7 +492,7 @@ Given:
 }
 }}}
 
-After dependent settings processing, the `dict` for `cruncher_test` will be:
+After dependent settings processing, the dictionary for `cruncher_test` will be:
 
 {{{
 {
@@ -525,7 +526,7 @@ As part of this process, GYP is also able to remove the direct dependency relati
 
 == Loading Files to Resolve Dependencies ==
 
-When GYP runs, it loads all `.gyp` files needed to resolve dependencies found in [#dependencies dependencies] sections.  These files are not merged into the files that reference them, but they may contain special sections that are merged into dependent target `dict`s.
+When GYP runs, it loads all `.gyp` files needed to resolve dependencies found in [#dependencies dependencies] sections.  These files are not merged into the files that reference them, but they may contain special sections that are merged into dependent target dictionaries.
 
 = Build Configurations =
 
@@ -533,18 +534,18 @@ Explain this.
 
 = List Exclusions and Patterns =
 
-GYP allows `list` items to be filtered by “exclusions” and “patterns.”  Any `list` containing `string` values in a `dict` may have this filtering applied.  For the purposes of this section, a `list` modified by exclusions or patterns is referred to as a “base `list`”, in contrast to the “exclusion `list`” and “pattern `list`” that operates on it.
+GYP allows list items to be filtered by “exclusions” and “patterns.”  Any list containing string values in a dictionary may have this filtering applied.  For the purposes of this section, a list modified by exclusions or patterns is referred to as a “base list”, in contrast to the “exclusion list” and “pattern list” that operates on it.
 
- * For a base `list` identified by key name `key`, the `key!` list provides exclusions.
- * For a base `list` identified by key name `key`, the `key/` list provides regular expression pattern-based filtering.
+ * For a base list identified by key name `key`, the `key!` list provides exclusions.
+ * For a base list identified by key name `key`, the `key/` list provides regular expression pattern-based filtering.
 
-Both `key!` and `key/` may be present.  The `key!` exclusion `list` will be processed first, followed by the `key/` pattern `list`.
+Both `key!` and `key/` may be present.  The `key!` exclusion list will be processed first, followed by the `key/` pattern list.
 
-Exclusion `list`s are most powerful when used in conjunction with [#Conditionals conditionals].
+Exclusion lists are most powerful when used in conjunction with [#Conditionals conditionals].
 
-== Exclusion Lists ==
+== Exclusion Lists (!) ==
 
-An exclusion `list` provides a way to remove items from the related `list` based on exact matching.  Any item found in an exclusion `list` will be removed from the corresponding base `list`.
+An exclusion list provides a way to remove items from the related list based on exact matching.  Any item found in an exclusion list will be removed from the corresponding base list.
 
 ==== Example ====
 
@@ -563,15 +564,15 @@ This example excludes files from the `sources` based on the setting of the `OS` 
 }
 }}}
 
-== Pattern Lists ==
+== Pattern Lists (/) ==
 
-Pattern `list`s are similar to, but more powerful than, [#Exclusion_Lists exclusion lists].  Each item in a pattern `list` is itself a two-element list.  The first item is a string, either `'include'` or `'exclude'`, specifying the action to take.  The second item is a string specifying a regular expression.  Any item in the base `list` matching the regular expression pattern will either be included or excluded, based on the action specified.
+Pattern lists are similar to, but more powerful than, [#Exclusion_Lists_(!) exclusion lists].  Each item in a pattern list is itself a two-element list.  The first item is a string, either `'include'` or `'exclude'`, specifying the action to take.  The second item is a string specifying a regular expression.  Any item in the base list matching the regular expression pattern will either be included or excluded, based on the action specified.
 
 Items in a pattern list are processed in sequence, and an excluded item that is later included will not be removed from the list (unless it is subsequently excluded again.)
 
-Pattern lists are processed after [#Exclusion_Lists exclusion lists], so it is possible for a pattern `list` to re-include items previously excluded by an exclusion `list`.
+Pattern lists are processed after [#Exclusion_Lists_(!) exclusion lists], so it is possible for a pattern list to re-include items previously excluded by an exclusion list.
 
-Nothing is actually removed from a base `list` until all items in an [#Exclusion_Lists exclusion list] and pattern `list` have been evaluated.  This allows items to retain their correct position relative to one another even after being excluded and subsequently included.
+Nothing is actually removed from a base list until all items in an [#Exclusion_Lists_(!) exclusion list] and pattern list have been evaluated.  This allows items to retain their correct position relative to one another even after being excluded and subsequently included.
 
 ==== Example ====
 
@@ -601,26 +602,26 @@ In this example, a uniform naming scheme is adopted for platform-specific files.
 }
 }}}
 
-After the pattern `list` is applied, `sources` will have the following values, depending on the setting of `OS`:
+After the pattern list is applied, `sources` will have the following values, depending on the setting of `OS`:
 
  * When `OS` is `linux`: `['io_posix.cc', 'main.cc', 'platform_util_linux.cc']`
  * When `OS` is `mac`: `['io_posix.cc', 'launcher_mac.cc', 'main.cc', 'platform_util_mac.mm']`
  * When `OS` is `win`: `['io_win.cc', 'main.cc', 'platform_util_win.cc']`
 
-Note that when `OS` is `win`, the `include` for `_win.cc` files is processed after the `exclude` matching the same pattern, because the `sources/` `list` participates in [#Merging merging] during [#Conditonals conditional evaluation] just like any other `list` would.  This guarantees that the `_win.cc` files, previously unconditionally excluded, will be re-included when `OS` is `win`.
+Note that when `OS` is `win`, the `include` for `_win.cc` files is processed after the `exclude` matching the same pattern, because the `sources/` list participates in [#Merging merging] during [#Conditonals conditional evaluation] just like any other list would.  This guarantees that the `_win.cc` files, previously unconditionally excluded, will be re-included when `OS` is `win`.
 
 == Locating Excluded Items ==
 
-In some cases, a GYP generator needs to access to items that were excluded by an [#Exclusion_Lists exclusion list] or [#Pattern_Lists pattern list].  When GYP excludes items during processing of either of these list types, it places the results in an `_excluded` list.  In the example above, when `OS` is `mac`, `sources_excluded` would be set to `['io_win.cc', 'platform_util_linux.cc']`.  Some GYP generators use this feature to display excluded files in the project files they generate for the convenience of users, who may wish to refer to other implementations.
+In some cases, a GYP generator needs to access to items that were excluded by an [#Exclusion_Lists_(!) exclusion list] or [#Pattern_Lists_(/) pattern list].  When GYP excludes items during processing of either of these list types, it places the results in an `_excluded` list.  In the example above, when `OS` is `mac`, `sources_excluded` would be set to `['io_win.cc', 'platform_util_linux.cc']`.  Some GYP generators use this feature to display excluded files in the project files they generate for the convenience of users, who may wish to refer to other implementations.
 
 = Processing Order =
 
 GYP uses a defined and predictable order to execute the various steps performed between loading files and generating output.
 
  * Load files.
-  * Load `.gyp` files.  Merge any [#Including_Other_Files command-line includes] into each `.gyp` file’s root `dict`.  As [#Including_Other_Files includes] are found, load them as well and [#Merging merge] them into the scope in which the [#includes includes] section was found.
+  * Load `.gyp` files.  Merge any [#Including_Other_Files command-line includes] into each `.gyp` file’s root dictionary.  As [#Including_Other_Files includes] are found, load them as well and [#Merging merge] them into the scope in which the [#includes includes] section was found.
   * Perform [#Early_and_Late_Phases “early” or “pre”] [#Variables_and_Conditionals variable expansion and conditional evaluation].
-  * [#Merging Merge] each [#targets target’s] `dict` into the `.gyp` file’s root [#target_defaults target_defaults] `dict`.
+  * [#Merging Merge] each [#targets target’s] dictionary into the `.gyp` file’s root [#target_defaults target_defaults] dictionary.
   * Scan each [#targets target] for [#dependencies dependencies], and repeat the above steps for any newly-referenced `.gyp` files not yet loaded.
  * Scan each [#targets target] for wildcard [#dependencies dependencies], expanding the wildcards.
  * Process [#Dependent_Settings dependent settings].  These sections are processed, in order:
@@ -629,7 +630,7 @@ GYP uses a defined and predictable order to execute the various steps performed 
   * [#link_dependent_settings link_dependent_settings]
  * Perform [#Linking_Dependencies static library dependency adjustment].
  * Merge [#targets target] settings into [#configurations configurations] as appropriate.
- * Perform [#Early_and_Late_Phases “late,” “post,” or “target”] [#Variables_and_Conditionals variable expansion and conditional evaluation] on [#targets target] `dict`s.
+ * Perform [#Early_and_Late_Phases “late,” “post,” or “target”] [#Variables_and_Conditionals variable expansion and conditional evaluation] on [#targets target] dictionaries.
  * Process [#List_Exclusions_and_Patterns exclusion and pattern lists].
 
 = Settings Keys =
@@ -638,16 +639,16 @@ GYP uses a defined and predictable order to execute the various steps performed 
 
 === conditions ===
 
-_`list` of `condition` items_
+_List of `condition` items_
 
 A `conditions` section introduces a subdictionary that is only merged into the enclosing scope based on the evaluation of a conditional expression.  Each `condition` within a `conditions` list is itself a list of two or three items:
 
- # A `string` containing the conditional expression itself.  Conditional expressions may take the following forms:
-   * For `string` values, `var=="value"` and `var!="value"` to test equality and inequality.  For example, `'OS=="linux"'` is true when the `OS` variable is set to `"linux"`.
-   * For `int` values, `var==value`, `var!=value`, `var<value`, `var<=value`, `var>=value`, and `var>value`, to test equality and several common forms of inequality.  For example, `'chromium_code==0'` is true when the `chromium_code` variable is set to `0`.
+ # A string containing the conditional expression itself.  Conditional expressions may take the following forms:
+   * For string values, `var=="value"` and `var!="value"` to test equality and inequality.  For example, `'OS=="linux"'` is true when the `OS` variable is set to `"linux"`.
+   * For integer values, `var==value`, `var!=value`, `var<value`, `var<=value`, `var>=value`, and `var>value`, to test equality and several common forms of inequality.  For example, `'chromium_code==0'` is true when the `chromium_code` variable is set to `0`.
    * It is an error for a conditional expression to reference any undefined variable.
- # A `dict` containing the subdictionary to be merged into the enclosing scope if the conditional expression evaluates to true.
- # `[`An optional `dict` containing the subdictionary to be merged into the enclosing scope if the conditional expression evaluates to false.`]`
+ # A dictionary containing the subdictionary to be merged into the enclosing scope if the conditional expression evaluates to true.
+ # `[`An optional dictionary containing the subdictionary to be merged into the enclosing scope if the conditional expression evaluates to false.`]`
 
 Within a `conditions` section, each item is processed sequentially, so it is possible to predict the order in which operations will occur.
 
@@ -658,13 +659,15 @@ There is no restriction on nesting `conditions` sections.
 ==== Example ====
 
 {{{
-'sources': [
-  'common.cc',
-],
-'conditions': [
-  ['OS=="mac"', {'sources': ['mac_util.mm']}],
-  ['OS=="win"', {'sources': ['win_main.cc']}, {'sources': ['posix_main.cc']}],
-],
+{
+  'sources': [
+    'common.cc',
+  ],
+  'conditions': [
+    ['OS=="mac"', {'sources': ['mac_util.mm']}],
+    ['OS=="win"', {'sources': ['win_main.cc']}, {'sources': ['posix_main.cc']}],
+  ],
+}
 }}}
 
 Given this input, the `sources` list will take on different values based on the `OS` variable.
