@@ -356,7 +356,7 @@ might expand to:
     'filename with space.cc',  # no @, expands into a single string
   ],
   'libraries': [  # @ was used, so there's a separate list item for each lib
-    '-apr-1',
+    '-lapr-1',
     '-lpthread',
   ],
 }
