@@ -452,7 +452,7 @@ In GYP, “dependents” are targets that rely on other targets, called “depen
 
 == Dependent Settings ==
 
-It is useful for dependents to “advertise” settings to their dependencies.  For example, a dependent target might require that all of its dependencies add certain directories to their include paths, link against special libraries, or define certain preprocessor macros.  GYP allows these cases to be handled gracefully with “dependent settings” sections.  There are three types of such sections:
+It is useful for dependents to “advertise” settings to their dependencies.  For example, a dependent target might require that all of its dependencies add certain directories to their include paths, link against special libraries, or define certain preprocessor macros.  GYP allows these cases to be handled gracefully with “dependent settings” sections.  There are three types of such sections:
 
  * [#direct_dependent_settings direct_dependent_settings], which advertises settings to a target's direct dependents only.
  * [#all_dependnet_settings all_dependent_settings], which advertises settings to all of a target's dependents, both direct and indirect.
@@ -532,7 +532,7 @@ When GYP runs, it loads all `.gyp` files needed to resolve dependencies found in
 
 Explain this.
 
-= List Exclusions and Patterns =
+= List Filters =
 
 GYP allows list items to be filtered by “exclusions” and “patterns.”  Any list containing string values in a dictionary may have this filtering applied.  For the purposes of this section, a list modified by exclusions or patterns is referred to as a “base list”, in contrast to the “exclusion list” and “pattern list” that operates on it.
 
