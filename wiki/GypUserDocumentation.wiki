@@ -24,7 +24,7 @@ and an overview of a typical library target in a `.gyp` file.
 After the overviews,
 there are examples of the `gyp` patterns for different use cases.
 
-= Overview of a typical Chromium .gyp file =
+= Skeleton of a typical Chromium .gyp file =
 
 Here is the skeleton of a typical `.gyp` file in the Chromium tree:
 
@@ -93,7 +93,7 @@ Here is the skeleton of a typical `.gyp` file in the Chromium tree:
 The entire file just contains a Python dictionary.
 (It's actually JSON, with two small Pythonic deviations:
 comments are introduced with `#`,
-and a `,` comma is legal after the last element
+and a `,` (comma)) is legal after the last element
 in a list or dictionary.)
 
 The pieces in the `.gyp` file are as follows:
@@ -113,7 +113,74 @@ As indicated above, the most common use of a `conditions`
 section in the top-level dictionary is to add platform-specific targets
 to the `targets` list.
 
-= Overview of a typical target in a .gyp file =
+= Skeleton of a typical executable target in a .gyp file =
+
+The vast majority of targets are libraries.  Here is an example
+of a library target that demonstrates the features that should cover
+most simple uses of gyp:
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'foo',
+        'type': 'executable'
+        'msvs_guid': '5ECEC9E5-8F23-47B6-93E0-C3B328B3BE65',
+        'dependencies': [
+          'xyzzy',
+          '../bar/bar.gyp:bar',
+        ],
+        'defines': [
+          'DEFINE_FOO',
+          ['DEFINE_A_VALUE', 'value'],
+        ],
+        'include_dirs': [
+          '..',
+        ],
+        'sources': [
+          'file1.cc',
+          'file2.cc',
+        ],
+        'conditions': [
+          ['OS=="linux"', {
+            'defines': [
+              'LINUX_DEFINE',
+            ],
+            'include_dirs': [
+              'include/linux',
+            ],
+          ],
+          ['OS=="win"', {
+            'defines': [
+              'WINDOWS_SPECIFIC_DEFINE',
+            ],
+          }, { # OS != "win",
+            'defines': [
+              'NON_WINDOWS_DEFINE',
+            ],
+          }]
+        ],
+    ],
+  }
+}}}
+
+`'target_name'`:
+
+`'type'`:
+
+`'msvs_guid'`:
+
+`'dependencies'`:
+
+`'defines'`:
+
+`'includes'`:
+
+`'sources'`:
+
+`'conditions'`:
+
+= Skeleton of a typical library target in a .gyp file =
 
 The vast majority of targets are libraries.  Here is an example
 of a library target that demonstrates the features that should cover
@@ -126,70 +193,62 @@ most simple uses of gyp:
         'target_name': 'foo',
         'type': '<(library)'
         'msvs_guid': '5ECEC9E5-8F23-47B6-93E0-C3B328B3BE65',
-		'dependencies': [
-		  'xyzzy',
-		  '../bar/bar.gyp:bar',
-		],
-		'defines': [
-		  'DEFINE_FOO',
-		  ['DEFINE_A_VALUE', 'value'],
-		],
-		'include_dirs': [
-		  '..',
-		],
-		'direct_dependent_settings': {
-		  'DEFINE_FOO',
-		  'DEFINE_ADDITIONAL',
-		},
-		'export_dependent_settings': [
-		  '../bar/bar.gyp:bar',
-		],
-		'sources': [
-		  'file1.cc',
-		  'file2.cc',
-		],
-		'conditions': [
-		  ['OS=="linux"', {
-		    'defines': [
-			  'LINUX_DEFINE',
-		    ],
-		    'include_dirs': [
-			  'include/linux',
-		    ],
-		  ],
-		  ['OS=="win"', {
-		    'defines': [
-			  'WINDOWS_SPECIFIC_DEFINE',
-			],
-		  }, { # OS != "win",
-		    'defines': [
-			  'NON_WINDOWS_DEFINE',
-		    ],
-		  }]
-		],
+        'dependencies': [
+          'xyzzy',
+          '../bar/bar.gyp:bar',
+        ],
+        'defines': [
+          'DEFINE_FOO',
+          ['DEFINE_A_VALUE', 'value'],
+        ],
+        'include_dirs': [
+          '..',
+        ],
+        'direct_dependent_settings': {
+          'defines': [
+            'DEFINE_FOO',
+            'DEFINE_ADDITIONAL',
+          ],
+          'linkflags': [
+          ],
+        },
+        'export_dependent_settings': [
+          '../bar/bar.gyp:bar',
+        ],
+        'sources': [
+          'file1.cc',
+          'file2.cc',
+        ],
+        'conditions': [
+          ['OS=="linux"', {
+            'defines': [
+              'LINUX_DEFINE',
+            ],
+            'include_dirs': [
+              'include/linux',
+            ],
+          ],
+          ['OS=="win"', {
+            'defines': [
+              'WINDOWS_SPECIFIC_DEFINE',
+            ],
+          }, { # OS != "win",
+            'defines': [
+              'NON_WINDOWS_DEFINE',
+            ],
+          }]
+        ],
     ],
   }
 }}}
 
-`target_name`:
+The entries
 
-`type`:
+`'type'`:
 
-`msvs_guid`:
+`'direct_dependent_settings'`:
 
-`dependencies`:
-
-`defines`:
-
-`includes`:
-
-`direct_dependent_settings`:
-
-`export_dependent_settings`:
-
-`sources`:
-
-`conditions`:
+`'export_dependent_settings'`:
 
 = Use Cases =
 
@@ -219,6 +278,7 @@ Just add the file(s) to the `sources` list of the appropriate dict in the `targe
     'targets': [
       {
         'target_name': 'my_target',
+        'type': 'executable',
         'sources': [
           '../other/file_1.cc',
           'new_file.cc',
@@ -248,9 +308,10 @@ to remove the files that aren't appropriate for the current platform:
     'targets': [
       {
         'target_name': 'foo',
+        'type': 'executable',
         'sources': [
-          'independent.cc'',
-          'specific_win.cc'',
+          'independent.cc',
+          'specific_win.cc',
         ],
       },
     ],
@@ -277,8 +338,9 @@ files name:
     'targets': [
       {
         'target_name': 'foo',
+        'type': 'executable',
         'sources': [
-          'linux_specific.cc'',
+          'linux_specific.cc',
         ],
         'conditions': [
           ['OS != "linux"', {
@@ -300,7 +362,7 @@ with consistent sorting on all platforms.
 
 *Non-preferred*:
 In some situations, however, it might make sense
-to only list a platform-specific file in a `conditions`
+to list a platform-specific file only in a `conditions`
 section that specifically _includes_ it in the `sources` list:
 
 {{{
@@ -308,6 +370,8 @@ section that specifically _includes_ it in the `sources` list:
     'targets': [
       {
         'target_name': 'foo',
+        'type': 'executable',
+        'sources': [],
         ['OS == "linux"', {
           'sources': [
             # Only add to sources list on Linux.
@@ -325,6 +389,103 @@ will list the files in different orders.
 (The first example defines explicitly where `linux_specific.cc`
 appears in the list--perhaps in in the middle--whereas
 the second example will always tack it on to the end of the list.)
+
+There are more complicated ways to construct a `sources` list
+based on patterns.  See `TBD` below.
+
+== Add a new executable ==
+
+An executable program is the most straightforward type of target.
+TODO.
+
+ * The `type` field should be set to `executable`.
+
+=== Add an executable that builds on all platforms ===
+
+Add a dict defining the new executable target to the `targets`
+list in the appropriate `.gyp` file.  Example:
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'new_unit_tests',
+        'type': 'executable',
+        'defines': [
+          'FOO',
+        ],
+        'include_dirs': [
+          '..',
+        ],
+        'dependencies': [
+          'other_gyp1',
+          'other_gyp2:specific_target',
+        ],
+        'sources': [
+          'new_additional_source.cc',
+          'new_unit_tests.cc',
+        ],
+      },
+    ],
+  }
+}}}
+
+=== Add a platform-specific executable ===
+
+Add a dict defining the new executable target
+to the `targets` list within a `conditions` block that's a sibling
+to the top-level `targets` list:
+
+{{{
+  {
+    'targets': [
+    ],
+    'conditions': [
+      ['OS=="win", {
+        'targets': [
+          {
+            'target_name': 'new_unit_tests',
+            'type': 'executable',
+            'defines': [
+              'FOO',
+            ],
+            'include_dirs': [
+              '..',
+            ],
+            'dependencies': [
+              'other_gyp1',
+              'other_gyp2:specific_target',
+            ],
+            'sources': [
+              'new_additional_source.cc',
+              'new_unit_tests.cc',
+            ],
+          },
+        ],
+      }],
+    ],
+  }
+}}}
+
+== Add a new include directory ==
+
+TBD
+
+== Compiler and linker settings ==
+
+TBD
+
+=== Add new compiler settings ===
+
+The basic
+
+=== Add new linker settings ===
+
+TBD
+
+=== Exclude compiler or linker settings on a platform ===
+
+TBD
 
 == Add a new library ==
 
@@ -425,106 +586,6 @@ to the top-level `targets` list:
   }
 }}}
 
-== Add a new executable ==
-
-Adding an executable target is a lot like adding a library target,
-except that:
-
- * The `type` field should be set to `executable`.
- * You'll (almost) never need `direct_dependent_settings` or `export_dependent_settings`.  (There should be no downstream dependencies 
- trying to compile or link against a built executble.)
-
-=== Add an executable that builds on all platforms ===
-
-Add a dict defining the new executable target to the `targets`
-list in the appropriate `.gyp` file.  Example:
-
-{{{
-  {
-    'targets': [
-      {
-        'target_name': 'new_unit_tests',
-        'type': 'executable',
-        'defines': [
-          'FOO',
-        ],
-        'include_dirs': [
-          '..',
-        ],
-        'dependencies': [
-          'other_gyp1',
-          'other_gyp2:specific_target',
-        ],
-        'sources': [
-          'new_additional_source.cc',
-          'new_unit_tests.cc',
-        ],
-      },
-    ],
-  }
-}}}
-
-=== Add a platform-specific executable ===
-
-Add a dict defining the new executable target
-to the `targets` list within a `conditions` block that's a sibling
-to the top-level `targets` list:
-
-{{{
-  {
-    'targets': [
-    ],
-    'conditions': [
-      ['OS=="win", {
-        'targets': [
-          {
-            'target_name': 'new_unit_tests',
-            'type': 'executable',
-            'defines': [
-              'FOO',
-            ],
-            'include_dirs': [
-              '..',
-            ],
-            'dependencies': [
-              'other_gyp1',
-              'other_gyp2:specific_target',
-            ],
-            'sources': [
-              'new_additional_source.cc',
-              'new_unit_tests.cc',
-            ],
-          },
-        ],
-      }],
-    ],
-  }
-}}}
-
-== Add a new include directory ==
-
-TBD
-
-== Compiler and linker settings ==
-
-TBD
-
-=== Add new compiler settings ===
-
-The basic
-
-=== Add new linker settings ===
-
-TBD
-
-=== Exclude compiler or linker settings on a platform ===
-
-TBD
-
-== Move files (refactoring) ==
-
-TBD
-
 == Depending on another target ==
 
 TBD
@@ -534,6 +595,10 @@ TBD
 TBD
 
 === When a library depends on an additional at the final link time ===
+
+TBD
+
+== Move files (refactoring) ==
 
 TBD
 
