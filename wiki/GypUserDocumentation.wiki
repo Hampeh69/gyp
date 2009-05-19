@@ -527,7 +527,7 @@ to the top-level `targets` list:
     'targets': [
     ],
     'conditions': [
-      ['OS=="win", {
+      ['OS=="win"', {
         'targets': [
           {
             'target_name': 'new_unit_tests',
@@ -759,7 +759,7 @@ to the top-level `targets` list:
     'targets': [
     ],
     'conditions': [
-      ['OS=="win", {
+      ['OS=="win"', {
         'targets': [
           {
             'target_name': 'new_library',
