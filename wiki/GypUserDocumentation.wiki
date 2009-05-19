@@ -1,11 +1,11 @@
 ﻿#labels Featured
 GYP (Generate Your Projects)
-<BR>Status: Draft (as of 2009-05-18)
+<BR>Status: Draft (as of 2009-05-19)
 
 Mark Mentovai <mark@chromium.org>,
 Steven Knight <sgk@chromium.org>
 _et al._
-<BR>Modified: 2009-05-18
+<BR>Modified: 2009-05-19
 
 Contents
 
@@ -96,7 +96,7 @@ comments are introduced with `#`,
 and a `,` (comma)) is legal after the last element
 in a list or dictionary.)
 
-The pieces in the `.gyp` file are as follows:
+The top-level pieces in the `.gyp` file are as follows:
 
 `'variables'`:  Definitions of variables that can be interpolated and used in various other parts of the file.
 
@@ -164,21 +164,53 @@ most simple uses of gyp:
   }
 }}}
 
+The top-level settings in the target include:
+
 `'target_name'`:
+The name by which the target should be known,
+which should be unique across all `.gyp` files.
+This name will be used
+as the project in the generated Visual Studio solution,
+as the target name in the generated XCode configuration,
+and as the command-line alias for building just this
+target in the generated SCons configuration.
 
 `'type'`:
+Set to `executable`.
 
 `'msvs_guid'`:
+THIS IS ONLY TRANSITIONAL.
+This is a hard-coded GUID values that will be used when
+generating Visual Studio project and solution files.
+This allows us to check in a `chrome.sln` file that
+interoperates with gyp-generated project files.
 
 `'dependencies'`:
+This lists other targets that this target depends on.
+The gyp-generated files will guarantee that the other targets
+are built before this target.
+Any library targets in the `dependencies` list will
+be linked with this target.
+This target's sources will be built
+with any settings defined by the targets
+as applying to dependent targets;
+see `direct_dependency_settings`, below.
 
 `'defines'`:
+The C preprocessor definitions that will be passed in
+on compilation command lines (using `-D` or `/D` options).
 
-`'includes'`:
+`'include_dirs'`:
+The directories in which included header files live.
+These will be passed in on compilation command lines
+(using `-I` or `/I` options).
 
 `'sources'`:
+The source files for this target.
 
 `'conditions'`:
+A block of conditions that will be evaluated to
+update the different settings in the target dictionary.
 
 = Skeleton of a typical library target in a .gyp file =
 
@@ -242,13 +274,35 @@ most simple uses of gyp:
   }
 }}}
 
-The entries
+The possible entries in a library target are largely the same
+as those that can be specified for an executable
+target (`defines`, `include_dirs`, etc.).
+The differences include:
 
 `'type'`:
+This should almost always be set to '<(library)',
+which allows the user to define at gyp time
+whether libraries are to be built static or shared.
+(On Linux, at least,
+building shared libraries saves significant link time.)
+If it's necessary to pin down the type of library to be built,
+the `type` can be set explicitly to
+`static_library` or `shared_library`.
 
 `'direct_dependent_settings'`:
+This defines the settings that will be applied to
+other targets that _directly depend_ on this target--that is,
+that list _this_ target in their
+`'dependencies'` setting.
+This is where you list the defines, include_dirs,
+cflags and linkflags that
+other targets that compile or link against this target
+need to build consistently.
 
 `'export_dependent_settings'`:
+This lists the targets whose `direct_dependent_settings`
+should be "passed on" to other targets that use (depend on) this target.
+[TODO:  expand on this description.]
 
 = Use Cases =
 
@@ -267,11 +321,17 @@ please add what's necessary to clarify things.)
 
 == Add new source files ==
 
+There are similar but slightly different patterns
+for adding a platform-independent source file
+vs. adding a source file that only builds on some
+of the supported platforms.
+
 === Add a source file that builds on all platforms ===
 
 *Simplest possible case*:  You have the file(s) building on all platforms.
 
-Just add the file(s) to the `sources` list of the appropriate dict in the `targets` list:
+Just add the file(s) to the `sources` list
+of the appropriate dictionary in the `targets` list:
 
 {{{
   {
@@ -295,13 +355,22 @@ Keep the list sorted alphabetically (unless there's a really, really, _really_ g
 
 === Add a platform-specific source file ===
 
-==== Your platform-specific file is named `*_linux.{ext}`, `*_mac.{ext}` or `*_win.{ext}` ====
+==== Your platform-specific file is named `*_linux.{ext}`, `*_mac.{ext}`, `*_posix.{ext}` or `*_win.{ext}` ====
 
-Add the file to the `sources` list of the appropriate dict
-within the `targets` list.
-The `.gyp` file containing the target should, in general,
-have an appropriate `conditions` entry
-to remove the files that aren't appropriate for the current platform:
+The simplest way to add a platform-specific source file,
+assuming you're adding a completely new file and get to name it,
+is to use one of the following standard suffixes:
+
+  `_linux`  (e.g. `foo_linux.cc`)
+  `_mac`    (e.g. `foo_mac.cc`)
+  `_posix`  (e.g. `foo_poxi.cc`)
+  `_win`    (e.g. `foo_win.cc`)
+
+Simply add the file to the `sources` list of the appropriate dict
+within the `targets` list,
+like you would any other source file.
+The Chromium `.gyp` files all have appropriate `conditions` entries
+to filter out the files that aren't appropriate for the current platform:
 
 {{{
   {
@@ -321,15 +390,16 @@ to remove the files that aren't appropriate for the current platform:
 The `specific_win.cc` file will be removed automatically
 from the source-list on non-Windows builds.
 
-==== Your platform-specific file does not use a pattern that's already in the `conditions` for the target ====
+==== Your platform-specific file does not use an already-defined pattern ====
 
-If your platform-specific file does not have `*_{linux,mac,win}` infix
-(or some other pattern that's already in the `conditions` for the target,
+If your platform-specific file does not contain
+a `*_{linux,mac,posix,win}` substring
+(or some other pattern that's already in the `conditions` for the target),
 and you can't change the file name,
 there are two patterns that can be used.
 
 *Prefererred*:  Add the file to the `sources` list of the appropriate
-dict within the `targets` list.
+dictionary within the `targets` list.
 Add an appropriate `conditions` section to exclude the specific
 files name:
 
@@ -396,13 +466,11 @@ based on patterns.  See `TBD` below.
 == Add a new executable ==
 
 An executable program is the most straightforward type of target.
-TODO.
-
- * The `type` field should be set to `executable`.
+[TODO: expand]
 
 === Add an executable that builds on all platforms ===
 
-Add a dict defining the new executable target to the `targets`
+Add a dictionary defining the new executable target to the `targets`
 list in the appropriate `.gyp` file.  Example:
 
 {{{
@@ -432,7 +500,7 @@ list in the appropriate `.gyp` file.  Example:
 
 === Add a platform-specific executable ===
 
-Add a dict defining the new executable target
+Add a dictionary defining the new executable target
 to the `targets` list within a `conditions` block that's a sibling
 to the top-level `targets` list:
 
@@ -467,40 +535,141 @@ to the top-level `targets` list:
   }
 }}}
 
-== Add a new include directory ==
+== Add settings to a target ==
 
-TBD
+=== Add new preprocessor definitions (`-D` or `/D` flags) ===
 
-== Compiler and linker settings ==
+New preprocessor definitions are added by the `defines` setting:
 
-TBD
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'existing_target',
+        'defines': [
+          'FOO',
+          ('BAR', 'some_value'),
+        ],
+      },
+    ],
+  },
+}}}
 
-=== Add new compiler settings ===
+These may be specified directly in a target's settings,
+as in the above example,
+or in a `conditions` section.
 
-The basic
+=== Add a new include directory (`-I` or `/I` flags ===
 
-=== Add new linker settings ===
+New include directories are added by the `include_dirs` setting:
 
-TBD
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'existing_target',
+        'include_dirs': [
+          '..',
+          'include',
+        ],
+      },
+    ],
+  },
+}}}
 
-=== Exclude compiler or linker settings on a platform ===
+These may be specified directly in a target's settings,
+as in the above example,
+or in a `conditions` section.
 
-TBD
+=== Add new compiler flags ===
+
+Specific compiler flags can be added with the `cflags` setting:
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'existing_target',
+        'conditions': [
+          ['OS=="win"', {
+            'cflags': [
+              TODO
+            ],
+          }, { # OS != "win"
+            'cflags': [
+              '-Werror',
+            ],
+          }],
+        ],
+      },
+    ],
+  },
+}}}
+
+Because these flags will be specific to the actual compiler involved,
+they will almost always be only set within a `conditions` section.
+
+=== Add new linker flags ===
+
+Specific linker flags can be added with the `ldflags` setting:
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'existing_target',
+        'conditions': [
+          ['OS=="win"', {
+            'ldflags': [
+              TODO
+            ],
+          }, { # OS != "win"
+            'ldflags': [
+              TODO
+            ],
+          }],
+        ],
+      },
+    ],
+  },
+}}}
+
+Because these flags will be specific to the actual linker involved,
+they will almost always be only set within a `conditions` section.
+
+=== Exclude settings on a platform ===
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'existing_target',
+        'conditions': [
+          ['OS=="linux"', {
+            'cflags!': [
+              '-Werror',
+            ],
+          }],
+        ],
+      },
+    ],
+  },
+}}}
 
 == Add a new library ==
 
-(TBD:  Discuss setting up `direct_dependent_settings` and `export_dependent_settings`.)
+TODO:  write intro
 
 === Add a library that builds on all platforms ===
 
-Add the a dict defining the new library target to the `targets`
+Add the a dictionary defining the new library target to the `targets`
 list in the appropriate `.gyp` file.  Example:
 
 {{{
   {
     'targets': [
       {
-        'target_name': 'new_target',
+        'target_name': 'new_library',
         'type': '<(library)',
         'defines': [
           'FOO',
@@ -521,16 +690,22 @@ list in the appropriate `.gyp` file.  Example:
         ],
         'sources': [
           'new_additional_source.cc',
-          'new_target.cc',
+          'new_library.cc',
         ],
       },
     ],
   }
 }}}
 
-The use of `<(library)` variable above should be the default and allows the developer to choose, at `gyp` time, whether to build with static or shared libraries.  (Building with shared libraries saves a _lot_ of link time on Linux.)
+The use of the `<(library)` variable above should be the default
+`type` setting for most library targets,
+as it allows the developer to choose,
+at `gyp` time, whether to build with static or shared libraries.
+(Building with shared libraries saves a _lot_ of link time on Linux.)
 
-It may be necessary to build a specific library as a fixed type.  Is so, the `type` field can be hard-wired appropriately.  For a static library:
+It may be necessary to build a specific library as a fixed type.
+Is so, the `type` field can be hard-wired appropriately.
+For a static library:
 
 {{{
         'type': 'static_library',
@@ -544,7 +719,7 @@ For a shared library:
 
 === Add a platform-specific library ===
 
-Add a dict defining the new library target
+Add a dictionary defining the new library target
 to the `targets` list within a `conditions` block that's a sibling
 to the top-level `targets` list:
 
@@ -556,7 +731,7 @@ to the top-level `targets` list:
       ['OS=="win", {
         'targets': [
           {
-            'target_name': 'new_target',
+            'target_name': 'new_library',
             'type': '<(library)',
             'defines': [
               'FOO',
@@ -577,7 +752,7 @@ to the top-level `targets` list:
             ],
             'sources': [
               'new_additional_source.cc',
-              'new_target.cc',
+              'new_library.cc',
             ],
           },
         ],
@@ -586,17 +761,155 @@ to the top-level `targets` list:
   }
 }}}
 
-== Depending on another target ==
+== Dependencies between targets ==
 
-TBD
+GYP provides useful primitives for
+establishing dependencies between targets,
+which need to be configured in the following situations.
 
-=== Compiling and linking against another target ===
+=== Linking with another library target ===
 
-TBD
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'foo',
+        'dependencies': [
+          'libbar',
+        ],
+      },
+      {
+        'target_name': 'libbar',
+        'type': '<(library)',
+        'sources': [
+        ],
+      },
+    ],
+  }
+}}}
 
-=== When a library depends on an additional at the final link time ===
+Note that if the library target is in a different `.gyp` file,
+you have to specify the path to other `.gyp` file,
+relative to this `.gyp` file's directory:
 
-TBD
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'foo',
+        'dependencies': [
+          '../bar/bar.gyp:libbar',
+        ],
+      },
+    ],
+  }
+}}}
+
+Adding a library often involves updating multiple `.gyp` files,
+adding the target to the approprate `.gyp` file
+(possibly a newly-added `.gyp` file),
+and updating targets in the other `.gyp` files
+that depend on (link with) the new library.
+
+=== Compiling with necessary flags for a library target dependency ===
+
+We need to build a library
+(often a third-party library)
+with specific preprocessor definitions
+or command-line flags,
+and need to ensure
+that targets that depend on the library
+build with the same settings.
+This situation is handled by a
+`direct_dependent_settings` list:
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'foo',
+        'type': 'executable',
+        'dependencies': [
+          'libbar',
+        ],
+      },
+      {
+        'target_name': 'libbar',
+        'type': '<(library)',
+        'defines': [
+          'LOCAL_DEFINE_FOR_LIBBAR',
+          'DEFINE_TO_USE_LIBBAR',
+        ],
+        'include_dirs': [
+          '..',
+          'include/libbar',
+        ],
+        'direct_dependent_settings': [
+          'defines': [
+            'DEFINE_TO_USE_LIBBAR',
+          ],
+          'include_dirs': [
+            'include/libbar',
+          ],
+        ],
+      },
+    ],
+  }
+}}}
+
+In the above example,
+the sources of the `foo` executable
+will be compiled with the options
+`-DDEFINE_TO_USE_LIBBAR -Iinclude/libbar`,
+because of those settings' being listed
+in the `direct_dependent_settings` block.
+
+Note that these settings will likely need to be replicated
+in the settings for the library target itsef,
+so that the library will build with the same options.
+This does not prevent the target from defining additional
+options for its "internal" use when compiling its own source files.
+(In the above example, these are
+the `LOCAL_DEFINE_FOR_LIBBAR` define,
+and the `..` entry in the `include_dirs` list.)
+
+=== When a library depends on an additional library at final link time ===
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'foo',
+        'type': 'executable',
+        'dependencies': [
+          'libbar',
+        ],
+      },
+      {
+        'target_name': 'libbar',
+        'type': '<(library)',
+        'dependencies': [
+          'libother'
+        ],
+        'export_dependent_settings': [
+          'libother'
+        ],
+      },
+      {
+        'target_name': 'libother',
+        'type': '<(library)',
+        'direct_dependent_settings': {
+          'defines': [
+            'DEFINE_FOR_LIBOTHER',
+          ],
+          'include_dirs': [
+            'include/libother',
+          ],
+        },
+      },
+    ],
+  }
+}}}
 
 == Move files (refactoring) ==
 
