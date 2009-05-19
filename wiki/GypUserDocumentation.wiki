@@ -640,13 +640,9 @@ Specific linker flags can be added with the `ldflags` setting:
       {
         'target_name': 'existing_target',
         'conditions': [
-          ['OS=="win"', {
+          ['OS=="linux"', {
             'ldflags': [
-              TODO
-            ],
-          }, { # OS != "win"
-            'ldflags': [
-              TODO
+              '-pthread',
             ],
           }],
         ],
@@ -944,20 +940,20 @@ and the `..` entry in the `include_dirs` list.)
 
 == Move files (refactoring) ==
 
-TBD
+TODO(sgk)
 
 == Custom build steps ==
 
-TBD
+TODO(sgk)
 
 === Adding an explicit build step to generate specific files ==
 
-TBD
+TODO(sgk)
 
 === Adding a rule to handle files with a new suffix ===
 
-TBD
+TODO(sgk)
 
 == Build flavors ==
 
-TBD
+TODO(sgk)
