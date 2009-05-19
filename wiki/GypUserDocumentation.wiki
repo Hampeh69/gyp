@@ -1,9 +1,11 @@
 ﻿#labels Featured
 GYP (Generate Your Projects)
-<BR>Status: Draft (as of 2009-02-24)
+<BR>Status: Draft (as of 2009-05-18)
 
-Mark Mentovai <mark@chromium.org> _et al._
-<BR>Modified: 2009-02-24
+Mark Mentovai <mark@chromium.org>,
+Steven Knight <sgk@chromium.org>
+_et al._
+<BR>Modified: 2009-05-18
 
 Contents
 
@@ -11,72 +13,338 @@ Contents
 
 = Introduction =
 
-This document is intended to provide a user-level guid to GYP.
+This document is intended to provide a user-level guide to GYP.
 The emphasis here is on how to use GYP to accomplish specific tasks,
-not on the complete technical language specification.  (For that,
-see the GypLanguageSpecification.)
+not on the complete technical language specification.
+(For that, see the GypLanguageSpecification.)
 
-= Use Cases =
+The structure below is two overviews to provide context:
+an overview of the `.gyp` file itself,
+and an overview of a typical library target in a `.gyp` file.
+After the overviews,
+there are examples of the `gyp` patterns for different use cases.
 
-These use cases are the most common actions performed by developers
-using GYP.  The intent is to try to cover roughly 90% of what developers
-need in six or so common cases.
+= Overview of a typical Chromium .gyp file =
 
-== Add New Source Files ==
-
-=== Add a file that builds on all platforms ===
-
-*Simplest possible case*:  You have the file(s) building on all platforms.
-
-Just add the file(s) to the `sources` list of the appropriate `target`.
-
-=== Add a platform-specific file ===
-
-*Simple case*:  your platform-specific file is named `*_linux.{ext}`,
-`*_mac.ext}` or `*_win.{ext}`.
-
-Add the file to the `sources` list of the appropriate `target`.
-The target should, in general, have an appropriate `conditions` entry
-to remove the files that aren't appropriate for the current platform.
-
-*Harder case*:  your platform-specific file does not use a
-`*_{linux,mac,win}` infix (or some other pattern that's already in the
-`conditions` for the target).  You can't change the file name, perhaps
-because the file is external.
-
-Add the file to the `sources` list of the appropriate `target`.  Add an
-appropriate `conditions` section to exclude the specific files name:
-
-{{{
-  'conditions': [
-    ['OS != "linux"', {
-        'sources!': [
-          # Linux-only; exclude on other platforms.
-          'platform_specific.cc',
-        ]
-      },
-    ],
-  ],
-}}}
-
-== Add a New Library ==
-
-TBD
-
-(Discuss setting up `direct_dependent_settings` and `export_dependent_settings`.)
+Here is the skeleton of a typical `.gyp` file in the Chromium tree:
 
 {{{
   {
+    'variables': {
       .
       .
       .
+    },
+    'includes': [
+      '../build/common.gypi',
+    ],
+    'target_defaults': {
+      .
+      .
+      .
+    },
     'targets': [
-        .
-        .
-        .
+      {
+        'target_name': 'target_1',
+          .
+          .
+          .
+      },
+      {
+        'target_name': 'target_2',
+          .
+          .
+          .
+      },
+    ],
+    'conditions': [
+      ['OS=="linux"', {
+        'targets': [
+          {
+            'target_name': 'linux_target_3',
+              .
+              .
+              .
+          },
+        ],
+      }],
+      ['OS=="win"', {
+        'targets': [
+          {
+            'target_name': 'windows_target_4',
+              .
+              .
+              .
+          },
+        ],
+      }, { # OS != "win"
+        'targets': [
+          {
+            'target_name': 'non_windows_target_5',
+              .
+              .
+              .
+          },
+      }],
+    ],
+  }
+}}}
+
+The entire file just contains a Python dictionary.
+(It's actually JSON, with two small Pythonic deviations:
+comments are introduced with `#`,
+and a `,` comma is legal after the last element
+in a list or dictionary.)
+
+The pieces in the `.gyp` file are as follows:
+
+`'variables'`:  Definitions of variables that can be interpolated and used in various other parts of the file.
+
+`'includes'`:  A list of of other files that will be included in this file.  By convention, included files have the suffix `.gypi` (gyp include).
+
+`'target_defaults'`:  Settings that will apply to _all_ of the targets defined in this `.gyp` file.
+
+`'targets'`:  The list of targets for which this `.gyp` file can generate builds.  Each target is a dictionary that contains settings describing all the information necessary to build the target.
+
+`'conditions'`:  A list of condition specifications that can modify
+the contents of the items in the global dictionary defined by this `.gyp`
+file based on the values of different variablwes.
+As indicated above, the most common use of a `conditions`
+section in the top-level dictionary is to add platform-specific targets
+to the `targets` list.
+
+= Overview of a typical target in a .gyp file =
+
+The vast majority of targets are libraries.  Here is an example
+of a library target that demonstrates the features that should cover
+most simple uses of gyp:
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'foo',
+        'type': '<(library)'
+        'msvs_guid': '5ECEC9E5-8F23-47B6-93E0-C3B328B3BE65',
+		'dependencies': [
+		  'xyzzy',
+		  '../bar/bar.gyp:bar',
+		],
+		'defines': [
+		  'DEFINE_FOO',
+		  ['DEFINE_A_VALUE', 'value'],
+		],
+		'include_dirs': [
+		  '..',
+		],
+		'direct_dependent_settings': {
+		  'DEFINE_FOO',
+		  'DEFINE_ADDITIONAL',
+		},
+		'export_dependent_settings': [
+		  '../bar/bar.gyp:bar',
+		],
+		'sources': [
+		  'file1.cc',
+		  'file2.cc',
+		],
+		'conditions': [
+		  ['OS=="linux"', {
+		    'defines': [
+			  'LINUX_DEFINE',
+		    ],
+		    'include_dirs': [
+			  'include/linux',
+		    ],
+		  ],
+		  ['OS=="win"', {
+		    'defines': [
+			  'WINDOWS_SPECIFIC_DEFINE',
+			],
+		  }, { # OS != "win",
+		    'defines': [
+			  'NON_WINDOWS_DEFINE',
+		    ],
+		  }]
+		],
+    ],
+  }
+}}}
+
+`target_name`:
+
+`type`:
+
+`msvs_guid`:
+
+`dependencies`:
+
+`defines`:
+
+`includes`:
+
+`direct_dependent_settings`:
+
+`export_dependent_settings`:
+
+`sources`:
+
+`conditions`:
+
+= Use Cases =
+
+These use cases are intended to cover the most common actions performed by developers using GYP.
+
+Note that these examples are _not_ fully-functioning, self-contained examples
+(or else they'd be way too long).
+Each example contains mostly contains just the keywords and settings
+relevant to the example,
+with perhaps a few extra for context.
+The intent is to try to show the specific pieces you
+need to pay attention to when doing something.
+(Note:  if practical use shows that these examples
+are confusing without additional context ,
+please add what's necessary to clarify things.)
+
+== Add new source files ==
+
+=== Add a source file that builds on all platforms ===
+
+*Simplest possible case*:  You have the file(s) building on all platforms.
+
+Just add the file(s) to the `sources` list of the appropriate dict in the `targets` list:
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'my_target',
+        'sources': [
+          '../other/file_1.cc',
+          'new_file.cc',
+          'subdir/file3.cc',
+        ],
+      },
+    ],
+  },
+}}}
+
+File path names are relative to the directory in which the `.gyp` file lives.
+
+Keep the list sorted alphabetically (unless there's a really, really, _really_ good reason not to).
+
+=== Add a platform-specific source file ===
+
+==== Your platform-specific file is named `*_linux.{ext}`, `*_mac.{ext}` or `*_win.{ext}` ====
+
+Add the file to the `sources` list of the appropriate dict
+within the `targets` list.
+The `.gyp` file containing the target should, in general,
+have an appropriate `conditions` entry
+to remove the files that aren't appropriate for the current platform:
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'foo',
+        'sources': [
+          'independent.cc'',
+          'specific_win.cc'',
+        ],
+      },
+    ],
+  },
+}}}
+
+The `specific_win.cc` file will be removed automatically
+from the source-list on non-Windows builds.
+
+==== Your platform-specific file does not use a pattern that's already in the `conditions` for the target ====
+
+If your platform-specific file does not have `*_{linux,mac,win}` infix
+(or some other pattern that's already in the `conditions` for the target,
+and you can't change the file name,
+there are two patterns that can be used.
+
+*Prefererred*:  Add the file to the `sources` list of the appropriate
+dict within the `targets` list.
+Add an appropriate `conditions` section to exclude the specific
+files name:
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'foo',
+        'sources': [
+          'linux_specific.cc'',
+        ],
+        'conditions': [
+          ['OS != "linux"', {
+            'sources!': [
+              # Linux-only; exclude on other platforms.
+              'linux_specific.cc',
+            ]
+          }[,
+        ],
+      },
+    ],
+  },
+}}}
+
+Despite the duplicate listing,
+the above is generally preferred because the `sources` list
+contains a useful global list of all sources on all platforms
+with consistent sorting on all platforms.
+
+*Non-preferred*:
+In some situations, however, it might make sense
+to only list a platform-specific file in a `conditions`
+section that specifically _includes_ it in the `sources` list:
+
+{{{
+  {
+    'targets': [
+      {
+        'target_name': 'foo',
+        ['OS == "linux"', {
+          'sources': [
+            # Only add to sources list on Linux.
+            'linux_specific.cc',
+          ]
+        }],
+      },
+    ],
+  },
+}}}
+
+The above two examples end up generating equivalent builds,
+with the small exception that the `sources` lists
+will list the files in different orders.
+(The first example defines explicitly where `linux_specific.cc`
+appears in the list--perhaps in in the middle--whereas
+the second example will always tack it on to the end of the list.)
+
+== Add a new library ==
+
+(TBD:  Discuss setting up `direct_dependent_settings` and `export_dependent_settings`.)
+
+=== Add a library that builds on all platforms ===
+
+Add the a dict defining the new library target to the `targets`
+list in the appropriate `.gyp` file.  Example:
+
+{{{
+  {
+    'targets': [
       {
         'target_name': 'new_target',
-        'type': 'static_library',
+        'type': '<(library)',
+        'defines': [
+          'FOO',
+          ('BAR', 'some_value'),
+        ],
         'include_dirs': [
           '..',
         ],
@@ -85,10 +353,10 @@ TBD
           'other_gyp2:specific_target',
         ],
         'direct_dependent_settings': [
-          'TBD',
+          'FOO',
         ],
         'export_dependent_settings': [
-          'TBD',
+          'other_gyp1',
         ],
         'sources': [
           'new_additional_source.cc',
@@ -96,30 +364,90 @@ TBD
         ],
       },
     ],
-      .
-      .
-      .
   }
 }}}
 
-== Add a New Executable ==
+The use of `<(library)` variable above should be the default and allows the developer to choose, at `gyp` time, whether to build with static or shared libraries.  (Building with shared libraries saves a _lot_ of link time on Linux.)
 
-=== Add an executable that builds on all platforms ===
+It may be necessary to build a specific library as a fixed type.  Is so, the `type` field can be hard-wired appropriately.  For a static library:
 
-TBD
+{{{
+        'type': 'static_library',
+}}}
+
+For a shared library:
+
+{{{
+        'type': 'shared_library',
+}}}
+
+=== Add a platform-specific library ===
+
+Add a dict defining the new library target
+to the `targets` list within a `conditions` block that's a sibling
+to the top-level `targets` list:
 
 {{{
   {
-      .
-      .
-      .
     'targets': [
-        .
-        .
-        .
+    ],
+    'conditions': [
+      ['OS=="win", {
+        'targets': [
+          {
+            'target_name': 'new_target',
+            'type': '<(library)',
+            'defines': [
+              'FOO',
+              ('BAR', 'some_value'),
+            ],
+            'include_dirs': [
+              '..',
+            ],
+            'dependencies': [
+              'other_gyp1',
+              'other_gyp2:specific_target',
+            ],
+            'direct_dependent_settings': [
+              'FOO',
+            ],
+            'export_dependent_settings': [
+              'other_gyp1',
+            ],
+            'sources': [
+              'new_additional_source.cc',
+              'new_target.cc',
+            ],
+          },
+        ],
+      }],
+    ],
+  }
+}}}
+
+== Add a new executable ==
+
+Adding an executable target is a lot like adding a library target,
+except that:
+
+ * The `type` field should be set to `executable`.
+ * You'll (almost) never need `direct_dependent_settings` or `export_dependent_settings`.  (There should be no downstream dependencies 
+ trying to compile or link against a built executble.)
+
+=== Add an executable that builds on all platforms ===
+
+Add a dict defining the new executable target to the `targets`
+list in the appropriate `.gyp` file.  Example:
+
+{{{
+  {
+    'targets': [
       {
-        'target_name': 'new_target',
+        'target_name': 'new_unit_tests',
         'type': 'executable',
+        'defines': [
+          'FOO',
+        ],
         'include_dirs': [
           '..',
         ],
@@ -129,33 +457,32 @@ TBD
         ],
         'sources': [
           'new_additional_source.cc',
-          'new_target.cc',
+          'new_unit_tests.cc',
         ],
       },
     ],
-      .
-      .
-      .
   }
 }}}
 
 === Add a platform-specific executable ===
 
-TBD
-
-(Discuss adding to the appropriate `conditions` block.)
+Add a dict defining the new executable target
+to the `targets` list within a `conditions` block that's a sibling
+to the top-level `targets` list:
 
 {{{
   {
-    .
-    .
-    .
+    'targets': [
+    ],
     'conditions': [
-      [ 'OS == "win", {
+      ['OS=="win", {
         'targets': [
           {
-            'target_name': 'new_target',
+            'target_name': 'new_unit_tests',
             'type': 'executable',
+            'defines': [
+              'FOO',
+            ],
             'include_dirs': [
               '..',
             ],
@@ -165,20 +492,63 @@ TBD
             ],
             'sources': [
               'new_additional_source.cc',
-              'new_target.cc',
+              'new_unit_tests.cc',
             ],
           },
         ],
-      ],
+      }],
     ],
   }
 }}}
 
-== Move Files (Refactoring) ==
+== Add a new include directory ==
 
 TBD
 
-== Merge WebKit ==
+== Compiler and linker settings ==
 
-(Should end up as part of Chromium documentation;
-here now to get the GYP parts right before moving elsewhere.)
+TBD
+
+=== Add new compiler settings ===
+
+The basic
+
+=== Add new linker settings ===
+
+TBD
+
+=== Exclude compiler or linker settings on a platform ===
+
+TBD
+
+== Move files (refactoring) ==
+
+TBD
+
+== Depending on another target ==
+
+TBD
+
+=== Compiling and linking against another target ===
+
+TBD
+
+=== When a library depends on an additional at the final link time ===
+
+TBD
+
+== Custom build steps ==
+
+TBD
+
+=== Adding an explicit build step to generate specific files ==
+
+TBD
+
+=== Adding a rule to handle files with a new suffix ===
+
+TBD
+
+== Build flavors ==
+
+TBD
