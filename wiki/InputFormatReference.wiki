@@ -288,10 +288,10 @@ GYP generators also provide defaults for these variables.  They may be expressed
  * `EXECUTABLE_SUFFIX`: A suffix, if any, applied to executable names.  On Windows, this will be `.exe`, elsewhere, it will usually be an empty string.
  * `INTERMEDIATE_DIR`: A directory that can be used to place intermediate build results in.  `INTERMEDIATE_DIR` is only guaranteed to be accessible within a single target (See targets).  This variable is most useful within the context of rules and actions (See rules, See actions).  Compare with `SHARED_INTERMEDIATE_DIR`.
  * `PRODUCT_DIR`: The directory in which the primary output of each target, such as executables and libraries, is placed.
- * `RULE_INPUT_ROOT`: See Rules.
- * `RULE_INPUT_EXT`: See Rules.
- * `RULE_INPUT_NAME`: See Rules.
- * `RULE_INPUT_PATH`: See Rules.
+ * `RULE_INPUT_ROOT`: The base name for the input file (e.g. "foo").  See Rules.
+ * `RULE_INPUT_EXT`: The file extension for the input file (e.g. ".cc").  See Rules.
+ * `RULE_INPUT_NAME`: Full name of the input file (e.g. "foo.cc").  See Rules.
+ * `RULE_INPUT_PATH`: Full path to the input file (e.g. "/bar/foo.cc").  See Rules.
  * `SHARED_INTERMEDIATE_DIR`: A directory that can be used to place intermediate build results in, and have them be accessible to other targets.  Unlike `INTERMEDIATE_DIR`, each target in a project, possibly spanning multiple `.gyp` files, shares the same `SHARED_INTERMEDIATE_DIR`.
 
 The following additional predefined variables may be available under certain circumstances:
