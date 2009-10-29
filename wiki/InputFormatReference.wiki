@@ -1,4 +1,5 @@
 #summary An exhaustive specification of the GYP input file format.
+#labels Featured
 
 <wiki:toc max_depth="3"/>
 
