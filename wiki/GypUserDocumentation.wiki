@@ -374,7 +374,7 @@ is to use one of the following standard suffixes:
 
  * `_linux`  (e.g. `foo_linux.cc`)
  * `_mac`    (e.g. `foo_mac.cc`)
- * `_posix`  (e.g. `foo_poxi.cc`)
+ * `_posix`  (e.g. `foo_posix.cc`)
  * `_win`    (e.g. `foo_win.cc`)
 
 Simply add the file to the `sources` list of the appropriate dict
