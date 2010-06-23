@@ -128,7 +128,7 @@ Targets may contain `includes`, `conditions`, and `variables` sections as permit
 || `target_name` || The name of a target being defined. ||
 || `type` || The type of target being defined. This field currently supports `exexecutable`, `static_library`, `shared_library`, and `none`.  TODO: document `none`.||
 || `msvs_props` || A list of Visual Studio property sheets (`.vsprops` files) to be used to build the target. ||
-|| `xcode_config` || An Xcode configuration (`.xcconfig` file) to be used to build the target (not currently implemented). ||
+|| `xcode_config_file` || An Xcode configuration (`.xcconfig` file) to be used to build the target (not currently implemented). ||
 || `xcode_framework_dirs` || A list of framework directories be used to build the target. ||
 
 TODO(sgk+mark):  document settings merging with new `= + ? ! /` characters
@@ -201,7 +201,7 @@ Combined with variable expansions, actions can be quite powerful.  Here is an ex
 We derive the following things in a `project.pbxproj` plist file within an `.xcodeproj` bundle from the above input file formats as follows:
 
   * `Group hierarchy`: This is generated in a fixed format with contents derived from the input files. There is no provision for the user to specify additional groups or create a custom hierarchy.
-    * `Configuration group`: This will be used with the `xcode_config` property above, if needed.
+    * `Configuration group`: This will be used with the `xcode_config_file` property above, if needed.
     * `Source group`: The union of the `sources` lists of all `targets` after applying appropriate `conditions`.  The resulting list is sorted and put into a group hierarchy that matches the layout of the directory tree on disk, with a root of // (the top of the hierarchy).
     * `Frameworks group`: Taken directly from `libraries` value for the target, after applying appropriate conditions.
     * `Projects group`: References to other `.xcodeproj` bundles that are needed by the `.xcodeproj` in which the group is contained.
