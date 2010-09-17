@@ -652,8 +652,8 @@ GYP uses a defined and predictable order to execute the various steps performed 
   * [#direct_dependent_settings direct_dependent_settings]
   * [#link_dependent_settings link_dependent_settings]
  * Perform [#Linking_Dependencies static library dependency adjustment].
- * Merge [#targets target] settings into [#configurations configurations] as appropriate.
  * Perform [#Early_and_Late_Phases “late,” “post,” or “target”] [#Variables_and_Conditionals variable expansion and conditional evaluation] on [#targets target] dictionaries.
+ * Merge [#targets target] settings into [#configurations configurations] as appropriate.
  * Process [#List_Exclusions_and_Patterns exclusion and pattern lists].
 
 = Settings Keys =
