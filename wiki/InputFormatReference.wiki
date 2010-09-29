@@ -475,7 +475,7 @@ In GYP, “dependents” are targets that rely on other targets, called “depen
 
 == Dependent Settings ==
 
-It is useful for dependents to “advertise” settings to their dependencies.  For example, a dependent target might require that all of its dependencies add certain directories to their include paths, link against special libraries, or define certain preprocessor macros.  GYP allows these cases to be handled gracefully with “dependent settings” sections.  There are three types of such sections:
+It is useful for targets to “advertise” settings to their dependents.  For example, a target might require that all of its dependents add certain directories to their include paths, link against special libraries, or define certain preprocessor macros.  GYP allows these cases to be handled gracefully with “dependent settings” sections.  There are three types of such sections:
 
  * [#direct_dependent_settings direct_dependent_settings], which advertises settings to a target's direct dependents only.
  * [#all_dependnet_settings all_dependent_settings], which advertises settings to all of a target's dependents, both direct and indirect.
@@ -485,7 +485,7 @@ Furthermore, in some cases, a target needs to pass its dependencies’ settings 
 
 Dependent settings processing merges a copy of the relevant dependent settings dictionary from a dependency into its relevant dependent targets.
 
-In most instances, [#direct_dependent_settings direct_dependent_settings] will be used.  There are very few cases where [#all_dependnet_settings all_dependent_settings] is actually correct; in most of the cases where it is tempting to use, it would be preferable to declare [#export_dependent_settings export_dependent_settings].  Most [#libraries libraries] and [#library_dirs library_dirs] sections should be placed within [#link_settings link_settings] sections.
+In most instances, [#direct_dependent_settings direct_dependent_settings] will be used.  There are very few cases where [#all_dependent_settings all_dependent_settings] is actually correct; in most of the cases where it is tempting to use, it would be preferable to declare [#export_dependent_settings export_dependent_settings].  Most [#libraries libraries] and [#library_dirs library_dirs] sections should be placed within [#link_settings link_settings] sections.
 
 ==== Example ====
 
