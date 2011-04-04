@@ -200,11 +200,11 @@ are built before this target.
 Any library targets in the `dependencies` list will
 be linked with this target.
 The various settings (`defines`, `include_dirs`, etc.)
-listed in the `direct_dependency_settings` sections
+listed in the `direct_dependent_settings` sections
 of the targets in this list
 will be applied to how _this_ target
 is built and linked.
-See the more complete discussion of `direct_dependency_settings`, below.
+See the more complete discussion of `direct_dependent_settings`, below.
 
 `'defines'`:
 The C preprocessor definitions that will be passed in
@@ -709,9 +709,9 @@ list in the appropriate `.gyp` file.  Example:
           'other_gyp1',
           'other_gyp2:specific_target',
         ],
-        'direct_dependent_settings': [
-          'FOO',
-        ],
+        'direct_dependent_settings': {
+          'include_dirs': '.',
+        },
         'export_dependent_settings': [
           'other_gyp1',
         ],
@@ -771,9 +771,9 @@ to the top-level `targets` list:
               'other_gyp1',
               'other_gyp2:specific_target',
             ],
-            'direct_dependent_settings': [
-              'FOO',
-            ],
+            'direct_dependent_settings': {
+              'include_dirs': '.',
+            },
             'export_dependent_settings': [
               'other_gyp1',
             ],
@@ -848,7 +848,7 @@ and need to ensure
 that targets that depend on the library
 build with the same settings.
 This situation is handled by a
-`direct_dependent_settings` list:
+`direct_dependent_settings` block:
 
 {{{
   {
