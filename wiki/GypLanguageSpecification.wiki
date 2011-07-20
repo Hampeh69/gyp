@@ -191,7 +191,7 @@ Combined with variable expansions, actions can be quite powerful.  Here is an ex
             '<(INTERMEDIATE_DIR)/libraries.cc',
             '<(INTERMEDIATE_DIR)/libraries-empty.cc',
           ],
-          'action': 'python tools/js2c.py <(_outputs) CORE <(core_library_files)',
+          'action': ['python', 'tools/js2c.py', '<@(_outputs)', 'CORE', '<@(core_library_files)'],
         },
       ],
 }}}
