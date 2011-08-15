@@ -278,10 +278,11 @@ Within a `variables` section, keys named with percent sign (`%`) suffixes mean t
 === Predefined Variables ===
 
 Each GYP generator module provides defaults for the following variables:
- * `OS`: The name of the operating system that the generator produces output for.  The currently defined values for `OS` are:
+ * `OS`: The name of the operating system that the generator produces output for.  Common values for values for `OS` are:
   * `'linux'`
   * `'mac'`
   * `'win'`
+ But other values may be encountered and this list should not be considered exhaustive.
  The `gypd` (debug) generator module does not provide a predefined value for `OS`.  When invoking GYP with the `gypd` module, if a value for `OS` is needed, it must be provided on the command line, such as `gyp -f gypd -DOS=mac`.
 
 GYP generators also provide defaults for these variables.  They may be expressed in terms of variables used by the build system that they generate for, often in `$(VARIABLE)` format.  For example, the GYP `PRODUCT_DIR` variable maps to the Xcode `BUILT_PRODUCTS_DIR` variable, so `PRODUCT_DIR` is defined by the Xcode generator as `$(BUILT_PRODUCTS_DIR)`.
