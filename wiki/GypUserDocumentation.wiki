@@ -502,8 +502,8 @@ list in the appropriate `.gyp` file.  Example:
           '..',
         ],
         'dependencies': [
-          'other_gyp1',
-          'other_gyp2:specific_target',
+          'other_target_in_this_file',
+          'other_gyp2:target_in_other_gyp2',
         ],
         'sources': [
           'new_additional_source.cc',
@@ -539,8 +539,8 @@ to the top-level `targets` list:
               '..',
             ],
             'dependencies': [
-              'other_gyp1',
-              'other_gyp2:specific_target',
+              'other_target_in_this_file',
+              'other_gyp2:target_in_other_gyp2',
             ],
             'sources': [
               'new_additional_source.cc',
@@ -706,14 +706,14 @@ list in the appropriate `.gyp` file.  Example:
           '..',
         ],
         'dependencies': [
-          'other_gyp1',
-          'other_gyp2:specific_target',
+          'other_target_in_this_file',
+          'other_gyp2:target_in_other_gyp2',
         ],
         'direct_dependent_settings': {
           'include_dirs': '.',
         },
         'export_dependent_settings': [
-          'other_gyp1',
+          'other_target_in_this_file',
         ],
         'sources': [
           'new_additional_source.cc',
@@ -768,14 +768,14 @@ to the top-level `targets` list:
               '..',
             ],
             'dependencies': [
-              'other_gyp1',
-              'other_gyp2:specific_target',
+              'other_target_in_this_file',
+              'other_gyp2:target_in_other_gyp2',
             ],
             'direct_dependent_settings': {
               'include_dirs': '.',
             },
             'export_dependent_settings': [
-              'other_gyp1',
+              'other_target_in_this_file',
             ],
             'sources': [
               'new_additional_source.cc',
