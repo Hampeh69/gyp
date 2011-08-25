@@ -32,7 +32,7 @@ The overall design has the following characteristics:
   * The `.gyp` file syntax is a Python data structure.
   * Use of arbitrary Python in `.gyp` files is forbidden.
     * Use of eval() with restricted globals and locals on `.gyp` file contents restricts the input to an evaluated expression, not arbitrary Python statements.
-    * All input is expected to comply with JSON, with two exceptions: the # character (not inside strings) begins a comment that lasts until the end of the line, and it trailing comments are permitted at the end of list and dict contents.
+    * All input is expected to comply with JSON, with two exceptions: the # character (not inside strings) begins a comment that lasts until the end of the line, and trailing comments are permitted at the end of list and dict contents.
   * Input data is a dictionary of keywords and values.
   * "Invalid" keywords on any given data structure are not illegal, they're just ignored.
     * TODO:  providing warnings on use of illegal keywords would help users catch typos.  Figure out something nice to do with this.
