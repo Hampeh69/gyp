@@ -126,7 +126,7 @@ Targets may contain `includes`, `conditions`, and `variables` sections as permit
 || `sources` || A list of source files that are used to build this target or which should otherwise show up in the IDE for this target.  In practice, we expect this list to be a union of all files necessary to build the target on all platforms, as well as other related files that aren't actually used for building, like README files. ||
 || `target_conditions` || Like `conditions`, but evaluation is delayed until the settings have been merged into an actual target.  `target_conditions` may be used to place conditionals into a `target_defaults` section but have them still depend on specific target settings. ||
 || `target_name` || The name of a target being defined. ||
-|| `type` || The type of target being defined. This field currently supports `exexecutable`, `static_library`, `shared_library`, and `none`.  TODO: document `none`.||
+|| `type` || The type of target being defined. This field currently supports `executable`, `static_library`, `shared_library`, and `none`.  TODO: document `none`.||
 || `msvs_props` || A list of Visual Studio property sheets (`.vsprops` files) to be used to build the target. ||
 || `xcode_config_file` || An Xcode configuration (`.xcconfig` file) to be used to build the target. ||
 || `xcode_framework_dirs` || A list of framework directories be used to build the target. ||
