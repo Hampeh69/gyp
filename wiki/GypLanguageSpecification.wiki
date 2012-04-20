@@ -123,10 +123,11 @@ Targets may contain `includes`, `conditions`, and `variables` sections as permit
 || `include_dirs` || A list of include directories to be passed on the command line to the C/C++ compiler (via `-I` or `/I` options). ||
 || `libraries` || A list of list of libraries (and/or frameworks) on which this target depends. ||
 || `link_settings` || A dictionary of settings to be applied to targets in which this target's contents are linked.  `executable` and `shared_library` targets are linkable, so if they depend on a non-linkable target such as a `static_library`, they will adopt its `link_settings`.  This section can contain anything found within a `target` dictionary, except `configurations`, `target_name`, and `type` sections.  Compare `all_dependent_settings` and `direct_dependent_settings`. ||
+|| `rules` || A special custom action to perform on a list of input files, to produce output files.  See the "Rules" section below. ||
 || `sources` || A list of source files that are used to build this target or which should otherwise show up in the IDE for this target.  In practice, we expect this list to be a union of all files necessary to build the target on all platforms, as well as other related files that aren't actually used for building, like README files. ||
 || `target_conditions` || Like `conditions`, but evaluation is delayed until the settings have been merged into an actual target.  `target_conditions` may be used to place conditionals into a `target_defaults` section but have them still depend on specific target settings. ||
 || `target_name` || The name of a target being defined. ||
-|| `type` || The type of target being defined. This field currently supports `executable`, `static_library`, `shared_library`, and `none`.  TODO: document `none`.||
+|| `type` || The type of target being defined. This field currently supports `executable`, `static_library`, `shared_library`, and `none`.  The `none` target type is useful when producing output which is not linked. For example, converting raw translation files into resources or documentation into platform specific help files. ||
 || `msvs_props` || A list of Visual Studio property sheets (`.vsprops` files) to be used to build the target. ||
 || `xcode_config_file` || An Xcode configuration (`.xcconfig` file) to be used to build the target. ||
 || `xcode_framework_dirs` || A list of framework directories be used to build the target. ||
@@ -160,7 +161,8 @@ An `actions` section provides a list of custom build actions to perform on input
 || `action_name` || string || The name of the action.  Depending on how actions are implemented in the various generators, some may desire or require this property to be set to a unique name; others may ignore this property entirely. ||
 || `inputs` || list || A list of pathnames treated as inputs to the custom action. ||
 || `outputs` || list || A list of pathnames that the custom action produces. ||
-|| `action` || string || A command line invocation used to produce `outputs` from `inputs`.  For maximum cross-platform compatibility, invocations that require a Python interpreter should be specified as strings beginning with `"python "`.  This will enable generators for environments with specialized Python installations to be able to perform the action in an appropriate Python environment. ||
+|| `action` || list || A command line invocation used to produce `outputs` from `inputs`.  For maximum cross-platform compatibility, invocations that require a Python interpreter should be specified with a first element `"python"`.  This will enable generators for environments with specialized Python installations to be able to perform the action in an appropriate Python environment. ||
+|| `message` || string || A message to be displayed to the user by the build system when the action is run. ||
 
 Build environments will compare `inputs` and `outputs`.  If any `output` is missing or is outdated relative to any `input`, the custom action will be invoked.  If all `outputs` are present and newer than all `inputs`, the `outputs` are considered up-to-date and the action need not be invoked.
 
@@ -195,6 +197,27 @@ Combined with variable expansions, actions can be quite powerful.  Here is an ex
         },
       ],
 }}}
+
+== Rules ==
+
+A `rules` section provides custom build action to perform on inputs, producing outputs.  The `rules` section is organized as a list.  Each item in the list is a dictionary having the following form:
+
+|| `rule_name` || string || The name of the rule.  Depending on how Rules are implemented in the various generators, some may desire or require this property to be set to a unique name; others may ignore this property entirely. ||
+|| `extension` || string || All source files of the current target with the given extension will be treated successively as inputs to the rule. ||
+|| `inputs` || list || Additional dependencies of the rule. ||
+|| `outputs` || list || A list of pathnames that the rule produces. Has access to `RULE_INPUT_` variables (see below). ||
+|| `action` || list || A command line invocation used to produce `outputs` from `inputs`.  For maximum cross-platform compatibility, invocations that require a Python interpreter should be specified with a first element `"python"`.  This will enable generators for environments with specialized Python installations to be able to perform the action in an appropriate Python environment. Has access to `RULE_INPUT_` variables (see below). ||
+|| `message` || string || A message to be displayed to the user by the build system when the action is run. Has access to `RULE_INPUT_` variables (see below). ||
+
+There are several variables available to `outputs`, `action`, and `message`.
+
+|| `RULE_INPUT_PATH` || The full path to the current input. ||
+|| `RULE_INPUT_DIRNAME` || The directory of the current input. ||
+|| `RULE_INPUT_NAME` || The file name of the current input. ||
+|| `RULE_INPUT_ROOT` || The file name of the current input without extension. ||
+|| `RULE_INPUT_EXT` || The file name extension of the current input. ||
+
+Rules can be thought of as Action generators. For each source selected by `extension` an special action is created. This action starts out with the same `inputs`, `outputs`, `action`, and `message` as the rule. The source is added to the action's `inputs`. The `outputs`, `action`, and `message` are then handled the same but with the additional variables. If the `_output` variable is used in the `action` or `message` the `RULE_INPUT_` variables in `output` will be expanded for the current source.
 
 == Generated Xcode .pbxproj Files ==
 
