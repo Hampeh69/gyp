@@ -117,6 +117,7 @@ Targets may contain `includes`, `conditions`, and `variables` sections as permit
 || `actions` || A list of special custom actions to perform on a specific input file, or files, to produce output files.  See the "Actions" section below. ||
 || `all_dependent_settings` || A dictionary of settings to be applied to all dependents of the target, transitively.  This includes direct dependents and the entire set of their dependents, and so on.  This section may contain anything found within a `target` dictionary, except `configurations`, `target_name`, and `type` sections.  Compare `direct_dependent_settings` and `link_settings`. ||
 || `configurations` || A list of dictionaries defining build configurations for the target.  See the "Configurations" section below. ||
+|| `copies` || A list of copy actions to perform. See the "Copies" section below. ||
 || `defines` || A list of preprocesor definitions to be passed on the command line to the C/C++ compiler (via `-D` or `/D` options). ||
 || `dependencies` || A list of targets on which this target depends. Targets in other `.gyp` files are specified as `../path/to/other.gyp:target_we_want`. ||
 || `direct_dependent_settings` || A dictionary of settings to be applied to other targets that depend on this target.  These settings will only be applied to direct dependents.  This section may contain anything found within a `target` dictionary, except `configurations`, `target_name`, and `type` sections.  Compare with `all_dependent_settings` and `link_settings`. ||
@@ -218,6 +219,15 @@ There are several variables available to `outputs`, `action`, and `message`.
 || `RULE_INPUT_EXT` || The file name extension of the current input. ||
 
 Rules can be thought of as Action generators. For each source selected by `extension` an special action is created. This action starts out with the same `inputs`, `outputs`, `action`, and `message` as the rule. The source is added to the action's `inputs`. The `outputs`, `action`, and `message` are then handled the same but with the additional variables. If the `_output` variable is used in the `action` or `message` the `RULE_INPUT_` variables in `output` will be expanded for the current source.
+
+== Copies ==
+
+A `copies` section provides a simple means of copying files.  The `copies` section is organized as a list.  Each item in the list is a dictionary having the following form:
+
+|| `destination` || string || The directory into which the `files` will be copied. ||
+|| `files` || list || A list of files to be copied. ||
+
+The copies will be created in `destination` and have the same file name as the file they are copied from. Even if the `files` are from multiple directories they will all be copied into the `destination` directory. Each `destination` file has an implicit build dependency on the file it is copied from.
 
 == Generated Xcode .pbxproj Files ==
 
