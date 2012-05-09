@@ -1,0 +1,3 @@
+#summary Gyp test infrastructure
+
+Gyp's Buildbot status page can be found here: http://build.chromium.org/f/client/gyp/
