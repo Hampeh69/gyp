@@ -939,6 +939,38 @@ and the `..` entry in the `include_dirs` list.)
   }
 }}}
 
+== Support for Mac OS X bundles ==
+
+gyp supports building bundles on OS X (.app, .framework, .bundle, etc). Here is an example of this:
+
+{{{
+    {
+      'target_name': 'test_app',
+      'product_name': 'Test App Gyp',
+      'type': 'executable',
+      'mac_bundle': 1,
+      'sources': [
+        'main.m',
+        'TestAppAppDelegate.h',
+        'TestAppAppDelegate.m',
+      ],
+      'mac_bundle_resources': [
+        'TestApp/English.lproj/InfoPlist.strings',
+        'TestApp/English.lproj/MainMenu.xib',
+      ],
+      'link_settings': {
+        'libraries': [
+          '$(SDKROOT)/System/Library/Frameworks/Cocoa.framework',
+        ],
+      },
+      'xcode_settings': {
+        'INFOPLIST_FILE': 'TestApp/TestApp-Info.plist',
+      },
+    },
+}}}
+
+The `mac_bundle` key tells gyp that this target should be a bundle. `executable` targets get extension `.app` by default, `shared_library` targets get `.framework` – but you can change the bundle extensions by setting `product_extension` if you want. Files listed in `mac_bundle_resources` will be copied to the bundle's `Resource` folder of the bundle. You can also set `process_outputs_as_mac_bundle_resources` to 1 in actions and rules to let the output of actions and rules be added to that folder (similar to `process_outputs_as_sources`). If `product_name` is not set, the bundle will be named after `target_name`as usual.
+
 == Move files (refactoring) ==
 
 TODO(sgk)
