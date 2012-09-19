@@ -872,14 +872,14 @@ This situation is handled by a
           '..',
           'include/libbar',
         ],
-        'direct_dependent_settings': [
+        'direct_dependent_settings': {
           'defines': [
             'DEFINE_TO_USE_LIBBAR',
           ],
           'include_dirs': [
             'include/libbar',
           ],
-        ],
+        },
       },
     ],
   }
