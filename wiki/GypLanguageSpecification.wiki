@@ -133,7 +133,7 @@ Targets may contain `includes`, `conditions`, and `variables` sections as permit
 || `xcode_config_file` || An Xcode configuration (`.xcconfig` file) to be used to build the target. ||
 || `xcode_framework_dirs` || A list of framework directories be used to build the target. ||
 
-TODO(sgk+mark):  document settings merging with new `= + ? ! /` characters
+You can affect the way that lists/dictionaries are merged together (for example the way a list in target_defaults interacts with the same named list in the target itself) with a couple of special characters, which are covered in [InputFormatReference#Merge_Basics_(=,_?,_+) Merge Basics] and [InputFormatReference#List_Filters List Filters] on the InputFormatReference page.
 
 == configurations =
 
