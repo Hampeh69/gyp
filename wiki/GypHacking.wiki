@@ -1,4 +1,4 @@
-=How to hack on GYP=
+#summary How to hack on GYP
 
 Note that the instructions below assume that you have the Chromium [http://dev.chromium.org/developers/how-tos/depottools depot tools] installed and configured.
 If you don't, you do not pass go, and you cannot collect your $200.
