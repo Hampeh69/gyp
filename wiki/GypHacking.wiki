@@ -6,13 +6,13 @@ If you don't, you do not pass go, and you cannot collect your $200.
 = Getting the sources =
 
 Best is to use git to hack on anything, you can set up a git clone of GYP as follows:
-<code>
+{{{
 git clone https://chromium.googlesource.com/external/gyp.git
 cd gyp
 git svn init --prefix=origin/ -T trunk http://gyp.googlecode.com/svn/
 git config --replace-all svn-remote.svn.fetch trunk:refs/remotes/origin/master
 git svn fetch
-</code>
+}}}
 
 At this point you should get a quick stream of output as git-svn rebuilds it's SVN version->SHA1 database:
 <code>
