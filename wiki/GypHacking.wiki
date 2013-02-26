@@ -65,5 +65,5 @@ git try
 
 Once the change has been approved (LGTMed) and passes trybots, you can submit it with:
 <code>
-git dcommit
+git cl dcommit
 </code>
