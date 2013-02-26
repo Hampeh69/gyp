@@ -29,6 +29,11 @@ r1 = 880a7f243635258fa4938bb7ebf9b4d5f46e3e48 (refs/remotes/git-svn)
 </code>
 then these instructions are out of date, and you're re-downloading the entire version history from SVN. Please update these instructions once you've figured out what's up.
 
+If you intend to commit your changes back to the GYP SVN repository, you need to configure git-svn's commit url.
+<code>
+git config svn-remote.svn.commiturl https://gyp.googlecode.com/svn/trunk
+</code>
+
 = Testing your change =
 
 GYP has a suite of tests which you can run with the provided test driver to make sure your changes aren't breaking anything important. 
@@ -67,4 +72,3 @@ Once the change has been approved (LGTMed) and passes trybots, you can submit it
 <code>
 git cl dcommit
 </code>
-(need to git config svn-remote.svn.commiturl https://gyp.googlecode.com/svn/trunk ?)
