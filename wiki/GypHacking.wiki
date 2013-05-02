@@ -49,7 +49,7 @@ See GypTesting for more details on the test framework.
 Note that it can be handy to look at the project files output by the tests to diagnose problems. The easiest way to do that is by kindly asking the test driver to leave the temporary directories it creates in-place. 
 This is done by setting the enviroment variable "PRESERVE", e.g. 
 <code>
-set PRESERVE=all  # On Windows
+set PRESERVE=all  # Othe password for your SVN commitn Windows
 export PRESERVE=all  # On saner platforms.
 </code>
 
@@ -72,3 +72,5 @@ Once the change has been approved (LGTMed) and passes trybots, you can submit it
 <code>
 git cl dcommit
 </code>
+
+To be allowed to commit, you will need committer rights in the project, and your password for the SVN server.  You can get that password here: [https://code.google.com/hosting/settings]
