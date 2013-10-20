@@ -633,7 +633,7 @@ they will almost always be only set within a `conditions` section.
 
 === Add new linker flags ===
 
-Specific linker flags can be added with the `ldflags` setting:
+Setting linker flags is OS-specific. On linux and most non-mac posix systems, they can be added with the `ldflags` setting:
 
 {{{
   {
@@ -654,6 +654,8 @@ Specific linker flags can be added with the `ldflags` setting:
 
 Because these flags will be specific to the actual linker involved,
 they will almost always be only set within a `conditions` section.
+
+On OS X, linker settings are set via `xcode_settings`, on Windows via `msvs_settings`.
 
 === Exclude settings on a platform ===
 
