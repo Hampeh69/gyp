@@ -163,6 +163,12 @@ If any tests fail during the run,
 the `gyptest.py` script will report them in a
 summary at the end.
 
+= Debugging tests =
+
+Tests that create intermediate output do so under the gyp/out/testworkarea directory. On test completion, intermediate output is cleaned up. To preserve this output, set the environment variable PRESERVE=1. This can be handy to inspect intermediate data when debugging a test.
+
+You can also set PRESERVE_PASS=1, PRESERVE_FAIL=1 or PRESERVE_NO_RESULT=1 to preserve output for tests that fall into one of those categories.
+
 = Specifying the format (build tool) to use =
 
 By default, the `gyptest.py` script will generate configurations for
