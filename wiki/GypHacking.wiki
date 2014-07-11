@@ -41,7 +41,7 @@ You run the test driver with e.g.
 {{{
 python gyptest.py
 python gyptest.py test/win  # Only run Windows-related tests.
-python gyptest.py -f ninja  # Only run ninja-related tests.
+python gyptest.py -a -f ninja  # Only run ninja-related tests.
 }}}
 
 See GypTesting for more details on the test framework.
