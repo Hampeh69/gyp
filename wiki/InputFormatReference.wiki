@@ -665,14 +665,17 @@ GYP uses a defined and predictable order to execute the various steps performed 
 
 _List of `condition` items_
 
-A `conditions` section introduces a subdictionary that is only merged into the enclosing scope based on the evaluation of a conditional expression.  Each `condition` within a `conditions` list is itself a list of two or three items:
+A `conditions` section introduces a subdictionary that is only merged into the enclosing scope based on the evaluation of a conditional expression.  Each `condition` within a `conditions` list is itself a list of at least two items:
 
  # A string containing the conditional expression itself.  Conditional expressions may take the following forms:
    * For string values, `var=="value"` and `var!="value"` to test equality and inequality.  For example, `'OS=="linux"'` is true when the `OS` variable is set to `"linux"`.
    * For integer values, `var==value`, `var!=value`, `var<value`, `var<=value`, `var>=value`, and `var>value`, to test equality and several common forms of inequality.  For example, `'chromium_code==0'` is true when the `chromium_code` variable is set to `0`.
    * It is an error for a conditional expression to reference any undefined variable.
  # A dictionary containing the subdictionary to be merged into the enclosing scope if the conditional expression evaluates to true.
- # `[`An optional dictionary containing the subdictionary to be merged into the enclosing scope if the conditional expression evaluates to false.`]`
+
+These two items can be followed by any number of similar two items that will be evaluated if the previous conditional expression does not evaluate to true.
+
+An additional optional dictionary can be appended to this sequence of two items.  This optional dictionary will be merged into the enclosing scope if none of the conditional expressions evaluate to true.
 
 Within a `conditions` section, each item is processed sequentially, so it is possible to predict the order in which operations will occur.
 
@@ -690,12 +693,16 @@ There is no restriction on nesting `conditions` sections.
   'conditions': [
     ['OS=="mac"', {'sources': ['mac_util.mm']}],
     ['OS=="win"', {'sources': ['win_main.cc']}, {'sources': ['posix_main.cc']}],
+    ['OS=="mac"', {'sources': ['mac_impl.mm']},
+     'OS=="win"', {'sources': ['win_impl.cc']},
+     {'sources': ['default_impl.cc']}
+    ],
   ],
 }
 }}}
 
 Given this input, the `sources` list will take on different values based on the `OS` variable.
 
- * If `OS` is `"mac"`, `sources` will contain `['common.cc', 'mac_util.mm', 'posix_main.cc']`.
- * If `OS` is `"win"`, `sources` will contain `['common.cc', 'win_main.cc']`.
- * If `OS` is any other value such as `"linux"`, `sources` will contain `['common.cc', 'posix_main.cc']`.
+ * If `OS` is `"mac"`, `sources` will contain `['common.cc', 'mac_util.mm', 'posix_main.cc', 'mac_impl.mm']`.
+ * If `OS` is `"win"`, `sources` will contain `['common.cc', 'win_main.cc', 'win_impl.cc']`.
+ * If `OS` is any other value such as `"linux"`, `sources` will contain `['common.cc', 'posix_main.cc', 'default_impl.cc']`.
