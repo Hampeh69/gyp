@@ -686,6 +686,16 @@ from the global settings defined in
   },
 }}}
 
+== Cross-compiling ==
+
+GYP has some (relatively limited) support for cross-compiling.
+
+If the variable `GYP_CROSSCOMPILE` or one of the toolchain-related variables (like `CC_host` or `CC_target`) is set, GYP will think that you wish to do a cross-compile.
+
+When cross-compiling, each target can be part of a "host" build, a "target" build, or both. By default, the target is assumed to be (only) part of the "target" build. The 'toolsets' property can be set on a target to change the default.
+
+A target's dependencies are assumed to match the build type (so, if A depends on B, by default that means that a target build of A depends on a target build of B). You can explicitly depend on targets across toolchains by specifying "#host" or "#target" in the dependencies list. If GYP is not doing a cross-compile, the "#host" and "#target" will be stripped as needed, so nothing breaks.
+
 == Add a new library ==
 
 TODO:  write intro
