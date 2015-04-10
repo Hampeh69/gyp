@@ -270,7 +270,7 @@ that should cover most needs of libraries:
             'include_dirs': [
               'include/linux',
             ],
-          ],
+          }],
           ['OS=="win"', {
             'defines': [
               'WINDOWS_SPECIFIC_DEFINE',
